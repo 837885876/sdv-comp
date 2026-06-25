@@ -1,0 +1,3825 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>第一届星露谷联机大赛</title>
+<!-- 由 server/start.py 在 launcher 启动时生成,告诉前端后端的公网地址。
+     文件不存在或加载失败也无所谓,fallback 到 localhost。 -->
+<script src="server_config.js" onerror="window.SV_BACKEND_URL_MISSING=true"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:          oklch(0.13 0.028 240);
+  --bg2:         oklch(0.10 0.022 240);
+  --surface:     oklch(0.21 0.035 35);
+  --surface2:    oklch(0.27 0.040 38);
+  --border:      oklch(0.44 0.075 42);
+  --shadow:      oklch(0.07 0.018 30);
+  --hilight:     oklch(0.52 0.068 48);
+
+  --green:       oklch(0.60 0.175 145);
+  --green-lt:    oklch(0.72 0.158 145);
+  --green-dk:    oklch(0.42 0.130 145);
+  --gold:        oklch(0.82 0.175 86);
+  --gold-dk:     oklch(0.62 0.165 78);
+  --gold-pale:   oklch(0.90 0.095 92);
+
+  --red:         oklch(0.60 0.215 25);
+  --red-lt:      oklch(0.72 0.190 27);
+  --yellow:      oklch(0.84 0.175 91);
+  --yellow-dk:   oklch(0.68 0.165 86);
+  --blue:        oklch(0.64 0.160 242);
+
+  --ink:         oklch(0.94 0.012 90);
+  --ink-muted:   oklch(0.68 0.030 90);
+  --ink-faint:   oklch(0.48 0.018 90);
+
+  --fp: 'Press Start 2P', monospace;
+  --fb: 'Noto Sans SC', system-ui, sans-serif;
+
+  --z-modal: 500;
+  --z-toast: 600;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+
+body {
+  font-family: var(--fb);
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── Stars ── */
+#stars {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.star {
+  position: absolute;
+  width: 2px; height: 2px;
+  background: white;
+  animation: twinkle var(--d,2s) ease-in-out infinite var(--del,0s);
+}
+.star.big { width:3px; height:3px; }
+@keyframes twinkle {
+  0%,100% { opacity:.15; }
+  50%      { opacity:1; }
+}
+@media (prefers-reduced-motion: reduce) { .star { animation:none; opacity:.3; } }
+
+/* ── Layout ── */
+#app { position:relative; z-index:1; max-width:1140px; margin:0 auto; padding:0 16px 80px; }
+
+/* ── Pixel panels ── */
+.pp {
+  background: var(--surface);
+  border: 4px solid var(--border);
+  box-shadow: -3px -3px 0 var(--hilight), 3px 3px 0 var(--shadow),
+              inset 1px 1px 0 oklch(0.34 0.048 42), inset -1px -1px 0 oklch(0.14 0.025 32);
+}
+.pp-gold {
+  background: var(--surface);
+  border: 4px solid var(--gold-dk);
+  box-shadow: -3px -3px 0 var(--gold), 3px 3px 0 oklch(0.30 0.10 72),
+              inset 1px 1px 0 oklch(0.34 0.048 42), inset -1px -1px 0 oklch(0.14 0.025 32);
+}
+.pp-green {
+  background: var(--surface);
+  border: 4px solid var(--green-dk);
+  box-shadow: -3px -3px 0 var(--green-lt), 3px 3px 0 oklch(0.28 0.095 145),
+              inset 1px 1px 0 oklch(0.34 0.048 42), inset -1px -1px 0 oklch(0.14 0.025 32);
+}
+.pp-red {
+  background: oklch(0.20 0.06 25);
+  border: 4px solid var(--red);
+  box-shadow: -3px -3px 0 var(--red-lt), 3px 3px 0 oklch(0.22 0.08 25),
+              inset 1px 1px 0 oklch(0.34 0.048 42), inset -1px -1px 0 oklch(0.14 0.025 32);
+}
+
+/* ── Header ── */
+header {
+  text-align: center;
+  padding: 48px 20px 32px;
+}
+.hdr-sub {
+  font-family: var(--fb);
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--gold);
+  letter-spacing: .22em;
+  margin-bottom: 14px;
+}
+.hdr-title {
+  font-family: var(--fp);
+  font-size: clamp(1.1rem, 3.2vw, 1.85rem);
+  color: var(--gold);
+  text-shadow: 3px 3px 0 var(--gold-dk), 6px 6px 0 oklch(0.22 0.06 78);
+  line-height: 1.65;
+  margin-bottom: 10px;
+  text-wrap: balance;
+}
+.hdr-tagline {
+  font-family: var(--fb);
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--green-lt);
+  letter-spacing: .15em;
+  margin-bottom: 28px;
+}
+.hdr-deco {
+  display: flex; justify-content: center; align-items: center; gap: 18px;
+  margin-bottom: 20px;
+}
+.hdr-deco span { font-size: 1.6rem; animation: bounce 1.1s ease-in-out infinite alternate; }
+.hdr-deco span:nth-child(2) { animation-delay:.22s; }
+.hdr-deco span:nth-child(3) { animation-delay:.44s; }
+@keyframes bounce { from{transform:translateY(0)} to{transform:translateY(-7px)} }
+@media (prefers-reduced-motion:reduce) { .hdr-deco span{animation:none} }
+
+.prize-strip {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 10px 24px;
+  font-family: var(--fb);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--gold);
+  margin-bottom: 32px;
+}
+
+/* ── Tabs ── */
+.tabs {
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 5px;
+  margin-bottom: 24px;
+}
+.tab-btn {
+  font-family: var(--fb);
+  font-size: 0.92rem;
+  font-weight: 700;
+  padding: 10px 18px;
+  background: var(--surface);
+  color: var(--ink-muted);
+  border: 3px solid var(--border);
+  cursor: pointer;
+  box-shadow: 3px 3px 0 var(--shadow);
+  transition: transform .08s, box-shadow .08s, background .08s;
+  white-space: nowrap;
+  letter-spacing: .03em;
+}
+.tab-btn:hover { background:var(--surface2); color:var(--ink); transform:translate(-1px,-1px); box-shadow:4px 4px 0 var(--shadow); }
+.tab-btn.active {
+  background: var(--green-dk);
+  color: var(--gold);
+  border-color: var(--green);
+  transform: translate(2px,2px);
+  box-shadow: 1px 1px 0 var(--shadow);
+}
+
+/* ── Tab content ── */
+.tab { display:none; }
+.tab.on { display:block; animation: fdin .18s ease-out; }
+@keyframes fdin { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:none} }
+
+/* ── Section heading ── */
+.sh {
+  font-family: var(--fp);
+  font-size: 0.82rem;
+  color: var(--gold);
+  text-align: center;
+  margin-bottom: 22px;
+  padding-bottom: 10px;
+  border-bottom: 3px solid var(--gold-dk);
+}
+.sh::before, .sh::after { content:'✦'; color:var(--green); margin:0 12px; }
+
+/* ── Leaderboard ── */
+.lb-list { display:flex; flex-direction:column; gap:7px; }
+
+.lb-row {
+  display: grid;
+  grid-template-columns: 52px minmax(0,1fr) 110px 80px 60px;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 18px;
+  transition: transform .09s;
+  cursor: default;
+}
+.lb-row:hover { transform: translateX(3px); }
+.lb-row.elim { opacity: .48; }
+.lb-row.elim .lb-score { color: var(--red-lt); text-decoration: line-through; }
+.lb-row.participation { opacity: .72; }
+
+.lb-rank {
+  font-family: var(--fp);
+  font-size: .80rem;
+  text-align: center;
+}
+.r1 { color: var(--gold); }
+.r2 { color: oklch(0.80 0.055 200); }
+.r3 { color: oklch(0.72 0.120 52); }
+
+.lb-info .lb-team-id {
+  font-family: var(--fb);
+  font-size: .82rem;
+  font-weight: 700;
+  color: var(--green-lt);
+  margin-bottom: 4px;
+}
+.lb-info .lb-leader { font-size: .92rem; font-weight: 500; color: var(--ink-muted); margin-bottom: 3px; }
+.lb-info .lb-members { font-size: .85rem; color: var(--ink-faint); }
+
+.lb-score {
+  font-family: var(--fp);
+  font-size: 1rem;
+  color: var(--gold);
+  text-align: right;
+  white-space: nowrap;
+}
+.lb-score-label { font-size: .80rem; color: var(--ink-muted); text-align:right; }
+
+.lb-cards { display:flex; gap:4px; align-items:center; flex-wrap:wrap; }
+.badge {
+  font-family: var(--fb);
+  font-size: .78rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border: 2px solid;
+}
+.badge-y { background:oklch(0.25 0.065 86); border-color:var(--yellow); color:var(--yellow); }
+.badge-r { background:oklch(0.20 0.075 25); border-color:var(--red); color:var(--red); }
+.badge-p { background:oklch(0.28 0.060 86); border-color:oklch(0.55 0.10 86); color:oklch(0.85 0.12 86); }
+
+.lb-prize { font-size: 1rem; text-align:center; }
+
+.sep-line { border:none; border-top:2px dashed var(--border); margin:18px 0; }
+.participation-note {
+  font-family: var(--fb);
+  font-size: .88rem;
+  font-weight: 500;
+  color: var(--ink-muted);
+  text-align: center;
+  margin-bottom: 12px;
+  letter-spacing: .08em;
+}
+
+/* ── Score Management ── */
+.admin-lock {
+  text-align: center;
+  padding: 60px 20px;
+}
+.admin-lock h3 {
+  font-family: var(--fp);
+  font-size: .68rem;
+  color: var(--gold);
+  margin-bottom: 10px;
+}
+.admin-lock p { font-size: .82rem; color: var(--ink-muted); margin-bottom: 24px; }
+
+/* inputs & buttons */
+.inp {
+  font-family: var(--fb);
+  font-size: .95rem;
+  padding: 9px 14px;
+  background: var(--bg2);
+  border: 3px solid var(--border);
+  color: var(--ink);
+  outline: none;
+  box-shadow: inset 2px 2px 0 var(--shadow);
+  width: 100%;
+}
+.inp:focus { border-color: var(--green); box-shadow: inset 2px 2px 0 var(--shadow), 0 0 0 3px oklch(0.60 0.175 145 / .18); }
+.inp-sm { max-width: 130px; font-size:.88rem; padding: 7px 10px; }
+.inp-pw { max-width: 240px; letter-spacing: .1em; }
+
+.btn {
+  font-family: var(--fb);
+  font-size: .90rem;
+  font-weight: 700;
+  padding: 9px 16px;
+  cursor: pointer;
+  border: 3px solid;
+  letter-spacing: .02em;
+  transition: transform .07s, box-shadow .07s;
+  white-space: nowrap;
+}
+.btn:active { transform:translate(2px,2px) !important; box-shadow:1px 1px 0 var(--shadow) !important; }
+
+.btn-green {
+  background: var(--green-dk);
+  border-color: var(--green);
+  color: var(--gold);
+  box-shadow: 3px 3px 0 var(--shadow);
+}
+.btn-green:hover { background:var(--green); transform:translate(-1px,-1px); box-shadow:4px 4px 0 var(--shadow); }
+
+.btn-gold {
+  background: oklch(0.30 0.085 80);
+  border-color: var(--gold);
+  color: var(--gold);
+  box-shadow: 3px 3px 0 var(--shadow);
+}
+.btn-gold:hover { background:oklch(0.40 0.100 80); transform:translate(-1px,-1px); box-shadow:4px 4px 0 var(--shadow); }
+
+.btn-red {
+  background: oklch(0.20 0.080 25);
+  border-color: var(--red);
+  color: var(--red-lt);
+  box-shadow: 3px 3px 0 var(--shadow);
+}
+.btn-red:hover { background:oklch(0.28 0.100 25); transform:translate(-1px,-1px); box-shadow:4px 4px 0 var(--shadow); }
+
+.btn-sm { padding: 7px 12px; font-size:.82rem; }
+.btn-xs { padding: 5px 9px; font-size:.78rem; }
+
+.score-grid { display:grid; gap:14px; }
+.score-card { padding: 18px 20px; }
+.score-head {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom: 14px;
+}
+.score-head-left { display:flex; align-items:center; gap:10px; }
+.score-tid { font-family:var(--fb); font-size:.92rem; font-weight:700; color:var(--green-lt); }
+.score-leader { font-size:.90rem; color:var(--ink-muted); }
+
+.score-cats {
+  display:grid;
+  grid-template-columns: repeat(auto-fill, minmax(175px,1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.score-cat label {
+  display:block;
+  font-size: .88rem;
+  font-weight: 500;
+  color: var(--ink-muted);
+  margin-bottom: 5px;
+}
+.score-cat .cat-hint {
+  font-size: .78rem;
+  color: var(--ink-faint);
+  margin-top: 3px;
+}
+
+.score-foot {
+  display:flex; align-items:center; justify-content:space-between;
+  padding-top: 12px;
+  border-top: 2px solid var(--border);
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.score-raw { font-size:.88rem; color:var(--ink-muted); }
+.score-after-pen { font-family:var(--fp); font-size:.88rem; color:var(--gold); }
+.score-after-pen.zeroed { color:var(--red-lt); }
+
+/* ── Penalties ── */
+.pen-grid {
+  display:grid;
+  grid-template-columns: repeat(auto-fill, minmax(295px,1fr));
+  gap: 14px;
+  margin-bottom: 22px;
+}
+.pen-card { padding:18px 20px; }
+.pen-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+.pen-tid { font-family:var(--fb); font-size:.92rem; font-weight:700; color:var(--green-lt); }
+.pen-leader { font-size:.88rem; color:var(--ink-muted); }
+
+.card-track { display:flex; gap:5px; align-items:center; }
+.cdot {
+  width:16px; height:16px;
+  border: 2px solid var(--border);
+  background: var(--bg2);
+}
+.cdot.y-empty { border-color:var(--yellow-dk); }
+.cdot.y-fill  { border-color:var(--yellow); background:var(--yellow); }
+.cdot.r-empty { border-color:var(--red); }
+.cdot.r-fill  { border-color:var(--red-lt); background:var(--red); }
+
+.pen-actions { display:flex; gap:7px; flex-wrap:wrap; margin-top:14px; }
+
+.pen-log-wrap { margin-top:0; }
+.sh-sm {
+  font-family:var(--fp); font-size:.75rem; color:var(--gold);
+  margin-bottom:14px; padding-bottom:8px;
+  border-bottom:2px solid var(--gold-dk);
+}
+.pen-log { display:flex; flex-direction:column; gap:7px; }
+.log-item {
+  display:flex; align-items:flex-start; gap:10px;
+  padding: 10px 14px;
+}
+.log-icon { font-size:.95rem; flex-shrink:0; }
+.log-body { flex:1; }
+.log-desc { font-size:.90rem; line-height:1.5; }
+.log-meta { font-size:.78rem; color:var(--ink-faint); margin-top:2px; }
+.log-empty { text-align:center; padding:32px; font-size:.88rem; color:var(--ink-faint); }
+
+/* ── Anti-cheat ── */
+.ac-controls {
+  display:flex; align-items:center; gap:12px;
+  margin-bottom:20px; flex-wrap:wrap;
+}
+.ac-controls label { font-size:.92rem; color:var(--ink-muted); }
+
+.ac-grid {
+  display:grid;
+  grid-template-columns: repeat(auto-fill, minmax(310px,1fr));
+  gap: 14px;
+}
+.ac-card { padding:18px 20px; }
+.ac-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+.ac-progress {
+  font-family:var(--fb);
+  font-size:.85rem;
+  font-weight:700;
+  color:var(--green-lt);
+}
+.ac-progress.done { color:var(--gold); }
+
+.checklist { display:flex; flex-direction:column; gap:8px; margin-top:8px; }
+.cl-item {
+  display:flex; align-items:flex-start; gap:9px;
+  padding: 7px 9px;
+  cursor:pointer;
+  border:2px solid transparent;
+  transition:all .09s;
+  user-select:none;
+}
+.cl-item:hover { border-color:var(--border); background:var(--surface2); }
+.cl-item.chk { background:oklch(0.19 0.040 145); border-color:var(--green-dk); }
+
+.px-cb {
+  width:18px; height:18px; flex-shrink:0;
+  border:3px solid var(--border);
+  background:var(--bg2);
+  display:grid; place-items:center;
+  transition:all .09s;
+}
+.cl-item.chk .px-cb { background:var(--green); border-color:var(--green-lt); }
+.px-cb::after {
+  content:'';
+  display:none;
+  width:8px; height:5px;
+  border-left:2px solid white;
+  border-bottom:2px solid white;
+  transform:rotate(-45deg) translateY(-2px);
+}
+.cl-item.chk .px-cb::after { display:block; }
+
+.cl-text { font-size:.90rem; line-height:1.55; }
+.cl-item.chk .cl-text { color:var(--green-lt); }
+
+.ac-note {
+  margin-top:10px; padding:8px 10px;
+  font-size:.85rem; color:var(--ink-muted);
+  background:var(--bg2); border:2px solid var(--border);
+}
+
+/* ── Rollbacks ── */
+.rb-grid {
+  display:grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px,1fr));
+  gap: 14px;
+}
+.rb-card { padding:18px 20px; }
+.rb-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+
+.seasons { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+.season {
+  text-align:center;
+  padding:12px 4px 10px;
+  border:2px solid var(--border);
+  background:var(--bg2);
+}
+.season.spr { border-color:var(--green-lt); }
+.season.sum { border-color:var(--gold); }
+.season.fal { border-color:oklch(0.72 0.18 52); }
+.season.win { border-color:var(--blue); }
+
+.sn {
+  font-family:var(--fb);
+  font-size:.88rem;
+  font-weight:700;
+  display:block;
+  margin-bottom:7px;
+}
+.season.spr .sn { color:var(--green-lt); }
+.season.sum .sn { color:var(--gold); }
+.season.fal .sn { color:oklch(0.72 0.18 52); }
+.season.win .sn { color:var(--blue); }
+
+.rb-dots { display:flex; justify-content:center; gap:5px; margin-bottom:6px; }
+.rb-dot {
+  width:11px; height:11px;
+  border:2px solid var(--border);
+  background:var(--bg2);
+}
+.rb-dot.used { background:var(--red); border-color:var(--red-lt); }
+.rb-dot.warn { background:var(--yellow-dk); border-color:var(--yellow); }
+
+.rb-count { font-size:.82rem; color:var(--ink-muted); }
+.rb-count b { color:var(--ink); }
+.rb-count.at-limit b { color:var(--red-lt); }
+.rb-count.near-limit b { color:var(--yellow); }
+
+.rb-btns { display:flex; justify-content:center; gap:5px; margin-top:8px; }
+
+.rb-total {
+  margin-top:12px;
+  padding-top:10px;
+  border-top:2px solid var(--border);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.rb-total-label { font-size:.88rem; color:var(--ink-muted); }
+.rb-total-val { font-family:var(--fb); font-size:.88rem; font-weight:700; color:var(--ink); }
+.rb-total-val.over { color:var(--red-lt); }
+
+/* ── Toast ── */
+#toasts {
+  position:fixed; bottom:24px; right:24px;
+  display:flex; flex-direction:column; gap:8px;
+  z-index:var(--z-toast);
+  pointer-events:none;
+}
+.toast {
+  padding:11px 18px;
+  font-size:.92rem;
+  max-width:340px;
+  pointer-events:auto;
+  animation:tin .18s ease-out;
+}
+@keyframes tin { from{opacity:0;transform:translateX(18px)} to{opacity:1;transform:none} }
+.toast.ok  { background:oklch(0.22 0.06 145); border:3px solid var(--green); color:var(--green-lt); box-shadow:3px 3px 0 var(--shadow); }
+.toast.err { background:oklch(0.22 0.06 25);  border:3px solid var(--red);   color:var(--red-lt);   box-shadow:3px 3px 0 var(--shadow); }
+.toast.wrn { background:oklch(0.22 0.06 86);  border:3px solid var(--yellow);color:var(--yellow);   box-shadow:3px 3px 0 var(--shadow); }
+
+/* ── Dialog ── */
+dialog {
+  background:var(--surface);
+  border:4px solid var(--border);
+  box-shadow:-3px -3px 0 var(--hilight), 3px 3px 0 var(--shadow), 6px 6px 0 var(--shadow);
+  color:var(--ink);
+  padding:30px;
+  max-width:440px;
+  width:90%;
+}
+dialog::backdrop { background:oklch(0.08 0.02 240 / .82); }
+.dlg-title { font-family:var(--fp); font-size:.75rem; color:var(--gold); margin-bottom:18px; }
+.dlg-body { font-size:.95rem; color:var(--ink-muted); margin-bottom:22px; line-height:1.65; }
+.dlg-actions { display:flex; gap:9px; justify-content:flex-end; flex-wrap:wrap; }
+
+/* ── Server sync bar ── */
+.sync-bar {
+  padding: 12px 16px;
+  margin-bottom: 16px;
+}
+.sync-bar-row {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 8px;
+}
+.sync-meta {
+  font-size: .80rem; color: var(--green-lt);
+  margin-top: 6px; padding: 6px 8px;
+  background: oklch(0.18 0.035 145); border: 1px solid var(--green-dk);
+}
+
+/* ── Remote AC grid ── */
+.remote-ac-item {
+  padding: 12px 16px; margin-bottom: 8px;
+}
+.remote-ac-head {
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 6px; margin-bottom: 6px;
+}
+
+/* ── Utilities ── */
+.row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.row-between { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+.col { display:flex; flex-direction:column; gap:8px; }
+.mt8 { margin-top:8px; }
+.mt16 { margin-top:16px; }
+.mt24 { margin-top:24px; }
+.mb8 { margin-bottom:8px; }
+.center { text-align:center; }
+
+@media (max-width:600px) {
+  /* ── App container ── */
+  #app { padding: 0 10px 60px; }
+
+  /* ── Header ── */
+  header { padding: 24px 8px 16px; }
+  .hdr-title { font-size: clamp(0.75rem, 4.5vw, 1.1rem); }
+  .hdr-tagline { font-size: .88rem; letter-spacing: .06em; }
+  .prize-strip {
+    display: flex; flex-wrap: wrap; justify-content: center;
+    width: 100%; font-size: .80rem; padding: 8px 10px;
+    text-align: center; line-height: 1.6;
+  }
+
+  /* ── Tabs ── */
+  .tabs { gap: 4px; }
+  .tab-btn { font-size: .78rem; padding: 8px 10px; }
+
+  /* ── Leaderboard ── */
+  .lb-row { grid-template-columns: 36px minmax(0,1fr) 96px; padding: 10px 12px; gap: 8px; }
+  .lb-cards, .lb-prize, .lb-score-label { display: none; }
+  .lb-score {
+    font-size: .82rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .lb-info .lb-team-id { font-size: .76rem; }
+  .lb-info .lb-leader  { font-size: .82rem; }
+  .lb-info .lb-members {
+    font-size: .74rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* ── Score management ── */
+  .score-cats { grid-template-columns: 1fr 1fr; }
+  .score-head { flex-wrap: wrap; gap: 8px; }
+  .score-foot { flex-direction: column; align-items: flex-start; }
+
+  /* ── Admin lock panels ── */
+  .admin-lock { padding: 20px 8px; }
+  .admin-lock > div[style] {
+    display: block !important;
+    width: 100% !important;
+    padding: 20px 16px !important;
+    box-sizing: border-box !important;
+  }
+
+  /* ── Penalty grid ── */
+  .pen-grid { grid-template-columns: 1fr; }
+  .pen-head { flex-wrap: wrap; gap: 6px; }
+  .pen-actions { gap: 5px; }
+
+  /* ── Anti-cheat ── */
+  .ac-grid { grid-template-columns: 1fr; }
+  .ac-controls { gap: 8px; }
+
+  /* ── Rollback ── */
+  .rb-grid { grid-template-columns: 1fr; }
+  .seasons { grid-template-columns: repeat(2,1fr); }
+  .rb-head { flex-wrap: wrap; gap: 6px; }
+
+  /* ── Toasts ── */
+  #toasts { right: 10px; left: 10px; bottom: 12px; }
+  .toast { max-width: 100%; font-size: .85rem; }
+
+  /* ── Dialog ── */
+  dialog { padding: 20px 14px; }
+  .dlg-actions { flex-direction: column; }
+  .dlg-actions .btn { width: 100%; text-align: center; }
+
+  /* ── Score rules panel ── */
+  #scPanel > div[style*="grid-template-columns"] { display: block !important; }
+  #scPanel > div[style*="grid-template-columns"] > p { margin-bottom: 6px; }
+}
+
+@media (max-width: 400px) {
+  .tab-btn { font-size: .72rem; padding: 7px 8px; }
+  .hdr-deco span { font-size: 1.2rem; }
+  .score-cats { grid-template-columns: 1fr; }
+  /* 极窄屏:再缩一点 + 收紧 padding */
+  .lb-row { grid-template-columns: 30px minmax(0,1fr) 84px; padding: 8px 10px; gap: 6px; }
+  .lb-score { font-size: .72rem; }
+}
+
+/* ── Team Detail Overlay ── */
+#tdOverlay {
+  position: fixed; inset: 0;
+  background: oklch(0.05 0.02 240 / .86);
+  z-index: 450;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 20px 16px;
+  overflow-y: auto;
+}
+#tdPanel {
+  width: 100%; max-width: 700px;
+  position: relative;
+  animation: fdin .18s ease-out;
+}
+.td-hdr {
+  padding: 20px 22px 16px;
+  background: var(--bg2);
+  border-bottom: 3px solid var(--border);
+  position: relative;
+}
+.td-close {
+  position: absolute; top: 14px; right: 14px;
+  width: 30px; height: 30px;
+  background: none; border: 2px solid var(--border);
+  color: var(--ink-muted); cursor: pointer;
+  display: grid; place-items: center;
+  font-size: .95rem; line-height: 1;
+  transition: background .08s, color .08s;
+}
+.td-close:hover { background: var(--surface2); color: var(--ink); }
+.td-body {
+  padding: 16px 22px 22px;
+  display: flex; flex-direction: column; gap: 12px;
+  background: var(--surface);
+}
+.td-sec { border: 2px solid var(--border); overflow: hidden; }
+.td-sec-title {
+  font-family: var(--fp); font-size: .60rem; color: var(--gold);
+  padding: 9px 14px;
+  background: oklch(0.17 0.022 240);
+  border-bottom: 2px solid var(--border);
+  letter-spacing: .03em;
+  display: flex; align-items: center; gap: 8px;
+}
+.td-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 14px; gap: 10px;
+  border-bottom: 1px solid oklch(0.19 0.02 240);
+}
+.td-row:last-child { border-bottom: none; }
+.td-lbl { font-size: .84rem; color: var(--ink-muted); flex: 1; }
+.td-val { font-size: .88rem; color: var(--ink); font-weight: 500; text-align: right; }
+.td-val.ok   { color: var(--green-lt); }
+.td-val.warn { color: var(--yellow); }
+.td-val.bad  { color: var(--red-lt); }
+.lb-row { cursor: pointer; }
+.lb-row:hover { filter: brightness(1.10); }
+.arc-scores {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 6px; margin-bottom: 8px;
+}
+@media (max-width:600px) {
+  #tdOverlay { padding: 0; }
+  #tdPanel { max-width: 100%; }
+  .td-hdr { padding: 14px 14px; }
+  .td-body { padding: 10px 12px 16px; }
+  .td-row { padding: 8px 12px; }
+  .arc-scores { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   排行榜简化弹窗 (Team Summary)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.ts-card {
+  position: relative;
+  background:
+    linear-gradient(180deg, oklch(0.22 0.035 35) 0%, oklch(0.18 0.030 35) 100%);
+  border: 4px solid var(--gold-dk);
+  box-shadow: 6px 6px 0 var(--shadow), inset 0 0 0 2px oklch(0.30 0.05 80 / .55);
+  width: min(440px, 92vw);
+  max-height: 86vh;
+  overflow-y: auto;
+  padding: 22px 24px 18px;
+  color: var(--ink);
+  font-family: var(--fb);
+}
+.ts-close {
+  position: absolute;
+  top: 8px; right: 10px;
+  background: none;
+  border: none;
+  color: var(--ink-muted);
+  font-family: var(--fp);
+  font-size: .92rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  transition: color .12s;
+}
+.ts-close:hover { color: var(--red-lt); }
+
+.ts-head { text-align: center; margin-bottom: 14px; }
+.ts-rank {
+  display: inline-block;
+  font-family: var(--fp);
+  font-size: .82rem;
+  color: var(--gold);
+  background: oklch(0.30 0.075 80 / .55);
+  padding: 5px 12px;
+  margin-bottom: 10px;
+  letter-spacing: .03em;
+}
+.ts-team {
+  font-family: var(--fb);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--gold);
+  margin: 0 0 4px;
+  letter-spacing: .02em;
+}
+.ts-prize {
+  font-family: var(--fp);
+  font-size: 1.1rem;
+  color: var(--gold-pale);
+  text-shadow: 2px 2px 0 oklch(0.10 0.02 30);
+  margin-top: 4px;
+}
+
+.ts-roster {
+  text-align: center;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  background: oklch(0.16 0.025 35);
+  border: 2px solid oklch(0.32 0.05 38);
+}
+.ts-leader {
+  font-size: 1rem;
+  color: var(--green-lt);
+  font-weight: 700;
+  margin-bottom: 3px;
+}
+.ts-leader.ts-noinfo { color: var(--ink-faint); font-weight: 400; font-size: .86rem; }
+.ts-members { font-size: .82rem; color: var(--ink-muted); }
+
+.ts-warns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+.ts-warn {
+  font-size: .76rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  letter-spacing: .03em;
+}
+.ts-warn-red    { background: oklch(0.30 0.13 25);  color: var(--red-lt);    border: 2px solid var(--red); }
+.ts-warn-yellow { background: oklch(0.32 0.10 86);  color: oklch(0.18 0.07 86); border: 2px solid var(--yellow-dk); }
+.ts-warn-rb     { background: oklch(0.26 0.08 240); color: oklch(0.82 0.10 240); border: 2px solid oklch(0.45 0.10 240); }
+
+.ts-score-strip {
+  margin-bottom: 16px;
+  padding: 12px 18px;
+  background:
+    linear-gradient(180deg, oklch(0.28 0.075 80 / .35), oklch(0.20 0.04 80 / .35));
+  border: 3px solid var(--gold-dk);
+  text-align: center;
+}
+.ts-score-label {
+  font-family: var(--fb);
+  font-size: .76rem;
+  color: var(--ink-muted);
+  letter-spacing: .04em;
+  margin-bottom: 4px;
+}
+.ts-score-num {
+  font-family: var(--fp);
+  font-size: 1.5rem;
+  color: var(--gold);
+  text-shadow: 2px 2px 0 oklch(0.10 0.02 30);
+  letter-spacing: .02em;
+}
+.ts-score-raw {
+  font-size: .76rem;
+  color: var(--ink-faint);
+  margin-top: 4px;
+}
+
+.ts-cats {
+  display: grid;
+  gap: 1px;
+  background: oklch(0.32 0.05 38);
+  border: 2px solid oklch(0.32 0.05 38);
+  margin-bottom: 14px;
+}
+.ts-cat-row {
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  background: oklch(0.18 0.025 35);
+  font-size: .88rem;
+}
+.ts-cat-icon { font-size: 1.1rem; line-height: 1; text-align: center; }
+.ts-cat-name { color: var(--ink); }
+.ts-cat-val  { color: var(--gold); font-family: var(--fp); font-size: .82rem; min-width: 50px; text-align: right; }
+
+.ts-foot {
+  font-size: .76rem;
+  color: var(--ink-faint);
+  text-align: center;
+  padding-top: 12px;
+  border-top: 1px dashed oklch(0.32 0.05 38);
+  line-height: 1.55;
+}
+
+@media (max-width: 480px) {
+  .ts-card { padding: 18px 18px 14px; }
+  .ts-team { font-size: 1.25rem; }
+  .ts-score-num { font-size: 1.25rem; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   登录界面 · 像素风星露谷之夜
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+#loginScreen {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  /* 夜空 → 暮霭 → 远山 → 草地的纵向渐变 */
+  background:
+    radial-gradient(ellipse at 78% 18%,
+      oklch(0.55 0.08 88 / .35) 0%, transparent 40%),
+    linear-gradient(to bottom,
+      oklch(0.16 0.038 248) 0%,
+      oklch(0.22 0.060 246) 32%,
+      oklch(0.28 0.075 220) 52%,
+      oklch(0.34 0.105 175) 68%,
+      oklch(0.38 0.140 148) 84%,
+      oklch(0.32 0.125 145) 100%);
+  animation: ls-fdin .55s ease-out;
+}
+#loginScreen.hide {
+  animation: ls-fdout .45s cubic-bezier(.62,.06,.39,.97) forwards;
+  pointer-events: none;
+}
+
+/* 像素月亮(右上) + 月晕 */
+.ls-moon {
+  position: absolute;
+  top: 7%;
+  right: 12%;
+  width: 76px;
+  height: 76px;
+  background: oklch(0.94 0.052 90);
+  border-radius: 50%;
+  box-shadow:
+    0 0 32px oklch(0.85 0.16 88 / .55),
+    0 0 60px oklch(0.85 0.16 88 / .25),
+    inset -14px -8px 0 oklch(0.78 0.075 90 / .35);
+  animation: ls-pulse 8s ease-in-out infinite;
+  image-rendering: pixelated;
+}
+.ls-moon::after {
+  /* 月亮上的小坑(暗斑) */
+  content: '';
+  position: absolute;
+  top: 22%; left: 26%;
+  width: 14px; height: 14px;
+  background: oklch(0.82 0.08 90 / .5);
+  border-radius: 50%;
+  box-shadow: 22px 18px 0 -4px oklch(0.82 0.08 90 / .4);
+}
+
+/* 像素飘云 */
+.ls-cloud {
+  position: absolute;
+  background: oklch(0.88 0.022 230);
+  border-radius: 28px;
+  filter: drop-shadow(0 3px 0 oklch(0.42 0.05 240 / .35));
+  opacity: .85;
+}
+.ls-cloud::before, .ls-cloud::after {
+  content: '';
+  position: absolute;
+  background: inherit;
+  border-radius: 50%;
+}
+.ls-cloud::before { width: 60%; height: 130%; top: -40%; left: 12%; }
+.ls-cloud::after  { width: 40%; height: 110%; top: -25%; left: 50%; }
+.ls-cloud-a { width: 96px; height: 22px; top: 14%; animation: ls-drift-r 95s linear infinite; animation-delay: -22s; }
+.ls-cloud-b { width: 72px; height: 18px; top: 26%; animation: ls-drift-r 130s linear infinite; animation-delay: -65s; opacity: .65; }
+.ls-cloud-c { width: 110px; height: 24px; top: 8%;  animation: ls-drift-r 110s linear infinite; animation-delay: -85s; opacity: .75; }
+
+/* 远山(SVG 平滑剪影,带柔边和大气透视) */
+.ls-mountains {
+  position: absolute;
+  bottom: 32%;
+  left: 0; right: 0;
+  height: 130px;
+  pointer-events: none;
+  /* 三层山:远→中→近,各自不同的色阶和透明度,营造距离感 */
+  background-image:
+    /* 近山:相对清楚 */
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 200' preserveAspectRatio='none'><path d='M0,200 L0,140 C40,128 80,120 120,118 C160,116 200,124 240,108 C280,92 320,76 360,82 C400,88 440,104 480,98 C520,92 560,72 600,80 C640,88 680,116 720,110 C760,104 800,84 840,90 C880,96 920,118 960,114 C1000,110 1040,90 1080,98 C1120,106 1160,124 1200,128 L1200,200 Z' fill='%231d2330'/></svg>"),
+    /* 中山:中色调 */
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 200' preserveAspectRatio='none'><path d='M0,200 L0,100 C50,80 100,68 150,72 C200,76 250,96 300,86 C350,76 400,52 450,58 C500,64 550,84 600,80 C650,76 700,56 750,62 C800,68 850,90 900,86 C950,82 1000,62 1050,68 C1100,74 1150,90 1200,94 L1200,200 Z' fill='%23252e3f' opacity='0.85'/></svg>"),
+    /* 远山:最淡 */
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 200' preserveAspectRatio='none'><path d='M0,200 L0,80 C60,64 120,52 180,56 C240,60 300,72 360,66 C420,60 480,40 540,46 C600,52 660,70 720,64 C780,58 840,40 900,46 C960,52 1020,68 1080,62 C1140,56 1200,46 1200,46 L1200,200 Z' fill='%232f3b52' opacity='0.55'/></svg>");
+  background-repeat: no-repeat, no-repeat, no-repeat;
+  background-size: 100% 100%, 100% 100%, 100% 100%;
+  background-position: bottom, bottom, bottom;
+  /* 顶部边缘柔化,避免硬切 */
+  mask-image: linear-gradient(180deg, transparent 0%, black 14%, black 100%);
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, black 14%, black 100%);
+}
+
+/* 地平线像素村庄剪影 — 错落的房屋 + 屋顶 + 烟囱 + 窗户灯光 */
+.ls-village {
+  position: absolute;
+  bottom: 30%;
+  left: 0; right: 0;
+  height: 56px;
+  pointer-events: none;
+  /* 像素村庄 — 两种房子混搭:
+     A. 黑色剪影屋(无灯,纯轮廓)
+     B. 亮屋(暖黄窗 + 烟囱),烟雾用 .ls-smoke 单独叠加  */
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 56' preserveAspectRatio='xMidYEnd meet'>\
+<defs><filter id='glow' x='-50%' y='-50%' width='200%' height='200%'><feGaussianBlur stdDeviation='1.2' result='b'/><feMerge><feMergeNode in='b'/><feMergeNode in='SourceGraphic'/></feMerge></filter></defs>\
+<g shape-rendering='crispEdges'>\
+<!-- 1 暗屋小 --><polygon points='12,38 44,38 38,22 18,22' fill='%23080c12'/><rect x='14' y='38' width='28' height='18' fill='%23080c12'/>\
+<!-- 2 亮屋(烟囱左) --><rect x='102' y='8' width='5' height='16' fill='%23130c08'/><polygon points='72,32 122,32 116,16 78,16' fill='%23241410'/><rect x='76' y='32' width='42' height='24' fill='%23150e0a'/><rect x='82' y='38' width='7' height='9' fill='%23f5d76e' filter='url(%23glow)'/><rect x='101' y='38' width='7' height='9' fill='%23f5d76e' filter='url(%23glow)'/><rect x='89' y='47' width='12' height='9' fill='%2330200f'/>\
+<!-- 3 暗屋高 --><polygon points='148,22 184,22 178,8 154,8' fill='%23080c12'/><rect x='150' y='22' width='32' height='34' fill='%23080c12'/>\
+<!-- 4 亮屋大(烟囱右,3 窗) --><rect x='240' y='-2' width='5' height='16' fill='%23130c08'/><polygon points='198,26 254,26 248,10 204,10' fill='%23241410'/><rect x='202' y='26' width='50' height='30' fill='%23150e0a'/><rect x='208' y='32' width='6' height='8' fill='%23f5d76e' filter='url(%23glow)'/><rect x='220' y='32' width='6' height='8' fill='%23f5d76e' filter='url(%23glow)'/><rect x='232' y='32' width='6' height='8' fill='%23f5d76e' filter='url(%23glow)'/><rect x='222' y='42' width='10' height='14' fill='%23362012'/>\
+<!-- 5 暗屋中 --><polygon points='278,30 310,30 304,18 282,18' fill='%23080c12'/><rect x='280' y='30' width='30' height='26' fill='%23080c12'/>\
+<!-- 6 亮屋教堂(尖顶 + 大窗) --><rect x='332' y='-8' width='4' height='12' fill='%23080c12'/><polygon points='320,18 348,18 340,4 326,4' fill='%23241410'/><rect x='322' y='18' width='24' height='38' fill='%23150e0a'/><rect x='328' y='26' width='12' height='18' fill='%23ffd76e' filter='url(%23glow)'/><rect x='330' y='46' width='8' height='10' fill='%23362012'/>\
+<!-- 7 暗屋长 --><polygon points='370,32 414,32 408,18 376,18' fill='%23080c12'/><rect x='372' y='32' width='40' height='24' fill='%23080c12'/>\
+<!-- 8 亮屋小(烟囱 + 单窗) --><rect x='450' y='16' width='4' height='12' fill='%23130c08'/><polygon points='426,38 462,38 456,26 432,26' fill='%23241410'/><rect x='430' y='38' width='30' height='18' fill='%23150e0a'/><rect x='438' y='44' width='10' height='8' fill='%23f5d76e' filter='url(%23glow)'/>\
+<!-- 9 暗屋斜顶 --><polygon points='482,34 514,34 510,24 484,24' fill='%23080c12'/><rect x='484' y='34' width='30' height='22' fill='%23080c12'/>\
+<!-- 10 亮屋谷仓(大门 + 双窗) --><polygon points='532,28 580,28 574,14 538,14' fill='%23341c10'/><polygon points='532,28 580,28 574,18 538,18' fill='%23241410'/><rect x='536' y='28' width='40' height='28' fill='%23150e0a'/><rect x='540' y='34' width='5' height='5' fill='%23f5d76e' filter='url(%23glow)'/><rect x='567' y='34' width='5' height='5' fill='%23f5d76e' filter='url(%23glow)'/><rect x='550' y='38' width='12' height='18' fill='%23341c10'/>\
+</g></svg>");
+  background-repeat: repeat-x;
+  background-size: 600px 56px;
+  background-position: bottom center;
+  filter: drop-shadow(0 -2px 8px oklch(0.06 0.018 30 / .65));
+  opacity: .96;
+}
+
+/* 烟囱烟雾层 — JS 随机生成在村庄上方 */
+.ls-smoke-field {
+  position: absolute;
+  left: 0; right: 0;
+  bottom: 32%;
+  height: 90px;
+  pointer-events: none;
+  z-index: 2;
+}
+.ls-smoke {
+  position: absolute;
+  bottom: 0;
+  width: 6px;
+  height: 6px;
+  background: oklch(0.82 0.012 240);
+  border-radius: 50%;
+  filter: blur(3px);
+  animation: ls-smoke-rise 7s ease-out infinite;
+  opacity: 0;
+}
+
+@keyframes ls-smoke-rise {
+  0%   { transform: translate(0px, 0px)   scale(.35); opacity: 0; }
+  10%  { opacity: .55; }
+  40%  { transform: translate(5px, -30px) scale(1.2); opacity: .45; }
+  75%  { transform: translate(2px, -60px) scale(2.0); opacity: .22; }
+  100% { transform: translate(8px, -90px) scale(2.8); opacity: 0; }
+}
+
+/* 草地(像素条纹) */
+.ls-ground {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 32%;
+  background:
+    repeating-linear-gradient(180deg,
+      oklch(0.36 0.135 148) 0px, oklch(0.36 0.135 148) 6px,
+      oklch(0.32 0.115 148) 6px, oklch(0.32 0.115 148) 12px),
+    linear-gradient(180deg,
+      oklch(0.40 0.150 148) 0%,
+      oklch(0.28 0.105 148) 100%);
+  background-blend-mode: multiply;
+}
+/* 草地顶部毛绒草尖 */
+.ls-ground::before {
+  content: '';
+  position: absolute;
+  top: -8px; left: 0; right: 0;
+  height: 10px;
+  background:
+    repeating-linear-gradient(90deg,
+      oklch(0.42 0.160 148) 0px, oklch(0.42 0.160 148) 4px,
+      transparent 4px, transparent 10px);
+  clip-path: polygon(0 100%, 2% 50%, 4% 80%, 6% 30%, 8% 70%, 10% 40%, 12% 75%, 14% 25%, 16% 60%, 18% 45%, 20% 70%, 22% 35%, 24% 65%, 26% 30%, 28% 70%, 30% 45%, 32% 60%, 34% 25%, 36% 75%, 38% 40%, 40% 65%, 42% 30%, 44% 70%, 46% 45%, 48% 60%, 50% 25%, 52% 70%, 54% 40%, 56% 65%, 58% 30%, 60% 75%, 62% 45%, 64% 60%, 66% 25%, 68% 70%, 70% 40%, 72% 65%, 74% 30%, 76% 75%, 78% 45%, 80% 60%, 82% 25%, 84% 70%, 86% 40%, 88% 65%, 90% 30%, 92% 75%, 94% 45%, 96% 60%, 98% 30%, 100% 100%);
+}
+
+/* 麦穗(JS 批量生成) — 细长直立,顶端尖,麦粒结构 */
+.ls-wheat-field { position: absolute; inset: 0; pointer-events: none; }
+.ls-wheat {
+  position: absolute;
+  width: 1.5px;
+  height: 26px;
+  background: linear-gradient(to top,
+    oklch(0.32 0.085 88) 0%,
+    oklch(0.50 0.13 82) 70%,
+    oklch(0.62 0.155 80) 100%);
+  transform-origin: bottom center;
+  animation: ls-sway 3.2s ease-in-out infinite;
+}
+.ls-wheat::before {
+  /* 麦穗头 — 细长尖头,垂直方向,带麦粒纹理 */
+  content: '';
+  position: absolute;
+  top: -24px;
+  left: -2.5px;
+  width: 6.5px;
+  height: 26px;
+  background:
+    /* 麦粒小段(每 3px 一个) */
+    repeating-linear-gradient(180deg,
+      oklch(0.78 0.165 88) 0px,
+      oklch(0.78 0.165 88) 2.2px,
+      oklch(0.55 0.13 80 / .5) 2.2px,
+      oklch(0.55 0.13 80 / .5) 3px),
+    linear-gradient(180deg,
+      oklch(0.88 0.16 92) 0%,
+      oklch(0.72 0.165 86) 70%,
+      oklch(0.55 0.13 80) 100%);
+  /* 上尖下圆的尖头形状 */
+  clip-path: polygon(50% 0%, 100% 18%, 100% 78%, 80% 100%, 20% 100%, 0% 78%, 0% 18%);
+  box-shadow:
+    inset 0 -1px 0 oklch(0.45 0.115 80 / .55),
+    inset 1px 1px 0 oklch(0.92 0.13 92 / .4);
+}
+.ls-wheat::after {
+  /* 顶端芒刺(细长须状) */
+  content: '';
+  position: absolute;
+  top: -32px;
+  left: -1px;
+  width: 4px;
+  height: 9px;
+  background:
+    linear-gradient(180deg,
+      transparent 0%, transparent 30%,
+      oklch(0.62 0.13 82) 30%, oklch(0.62 0.13 82) 100%);
+  clip-path: polygon(0% 100%, 50% 0%, 100% 100%, 80% 100%, 60% 30%, 50% 100%, 40% 30%, 20% 100%);
+}
+
+/* 萤火虫(JS 批量生成) */
+.ls-fireflies { position: absolute; inset: 0; pointer-events: none; }
+.ls-firefly {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  background: oklch(0.96 0.18 95);
+  border-radius: 50%;
+  box-shadow:
+    0 0 6px  oklch(0.98 0.22 95),
+    0 0 14px oklch(0.92 0.20 90 / .85),
+    0 0 24px oklch(0.82 0.16 88 / .45);
+  animation: ls-fly 11s ease-in-out infinite;
+  opacity: 0;
+}
+
+/* 远景星星(顶部夜空) */
+.ls-stars { position: absolute; top: 0; left: 0; right: 0; height: 40%; pointer-events: none; }
+.ls-star {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: oklch(0.95 0.05 90);
+  box-shadow: 0 0 4px oklch(0.95 0.12 90);
+  animation: ls-twinkle 3.8s ease-in-out infinite;
+}
+
+/* ───── 登录卡片 ───── */
+.ls-card {
+  position: relative;
+  z-index: 10;
+  background:
+    linear-gradient(180deg,
+      oklch(0.20 0.030 240 / .94) 0%,
+      oklch(0.16 0.025 240 / .94) 100%);
+  border: 4px solid var(--gold-dk);
+  box-shadow:
+    7px 7px 0 oklch(0.06 0.018 30 / .8),
+    inset 0 0 0 2px oklch(0.30 0.05 80 / .6),
+    0 0 40px oklch(0.50 0.16 88 / .15);
+  padding: 28px 32px 26px;
+  width: min(440px, 90vw);
+  /* 视口允许时不限高,避免 hover 触发滚动条;视口太矮就让背景层(loginScreen)滚动 */
+  max-height: none;
+  overflow: visible;
+}
+/* 窄屏(高<720)时给登录层加滚动,把高度限制让给外层而不是卡片 */
+@media (max-height: 720px) {
+  #loginScreen { overflow-y: auto; align-items: flex-start; padding: 20px 0; }
+  .ls-card { margin: auto; }
+}
+/* 卡片像素装饰角 */
+.ls-card::before, .ls-card::after {
+  content: '';
+  position: absolute;
+  width: 14px; height: 14px;
+  background:
+    linear-gradient(45deg, transparent 50%, var(--gold) 50%);
+}
+.ls-card::before { top: -4px; left: -4px; transform: rotate(180deg); }
+.ls-card::after  { bottom: -4px; right: -4px; }
+
+.ls-logo {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  font-size: 1.6rem;
+  margin-bottom: 8px;
+}
+.ls-title {
+  font-family: var(--fp);
+  font-size: .98rem;
+  color: var(--gold);
+  text-align: center;
+  letter-spacing: .035em;
+  margin-bottom: 4px;
+  text-shadow: 2px 2px 0 oklch(0.10 0.02 30);
+  line-height: 1.4;
+}
+.ls-subtitle {
+  font-size: .82rem;
+  color: var(--ink-muted);
+  text-align: center;
+  margin-bottom: 22px;
+}
+
+.ls-step { display: none; }
+.ls-step.on { display: block; animation: ls-step-in .25s ease-out; }
+
+.ls-step-title {
+  font-family: var(--fb);
+  font-size: .98rem;
+  font-weight: 700;
+  color: var(--gold);
+  margin-bottom: 14px;
+  text-align: center;
+  letter-spacing: .02em;
+}
+
+/* 角色入口 */
+.ls-roles { display: grid; gap: 10px; margin-bottom: 18px; }
+.ls-role {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 13px 15px;
+  /* 保留 4px 阴影空间,避免 hover 位移撑大父容器触发滚动条 */
+  margin: 1px 4px 4px 1px;
+  background: oklch(0.21 0.035 35);
+  border: 3px solid oklch(0.32 0.050 38);
+  cursor: pointer;
+  transition: transform .12s cubic-bezier(.32,.06,.39,.97), border-color .12s, background .12s, box-shadow .12s;
+  color: var(--ink);
+  text-align: left;
+  font-family: var(--fb);
+  width: calc(100% - 5px);
+  box-shadow: 3px 3px 0 var(--shadow);
+}
+.ls-role:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 var(--shadow), 0 0 0 1px var(--gold) inset;
+  background: oklch(0.27 0.050 38);
+  border-color: var(--gold-dk);
+}
+.ls-role:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--shadow); }
+.ls-role-icon { font-size: 1.7rem; line-height: 1; }
+.ls-role-body { flex: 1; }
+.ls-role-name {
+  font-family: var(--fb);
+  font-weight: 700;
+  font-size: .96rem;
+  color: var(--gold);
+  margin-bottom: 2px;
+}
+.ls-role-hint { font-size: .76rem; color: var(--ink-muted); line-height: 1.45; }
+.ls-role-arrow { color: var(--gold-dk); font-size: 1.1rem; font-family: var(--fp); }
+
+/* 输入框 */
+.ls-form { display: grid; gap: 11px; margin-bottom: 6px; }
+.ls-label {
+  display: block;
+  font-size: .76rem;
+  color: var(--ink-muted);
+  margin-bottom: 4px;
+  letter-spacing: .02em;
+}
+.ls-input {
+  width: 100%;
+  padding: 10px 13px;
+  background: oklch(0.13 0.020 240);
+  border: 2px solid oklch(0.32 0.050 38);
+  color: var(--ink);
+  font-family: var(--fb);
+  font-size: .92rem;
+  transition: border-color .12s, box-shadow .12s;
+}
+.ls-input::placeholder { color: oklch(0.55 0.025 90); }
+.ls-input:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px oklch(0.82 0.175 86 / .18);
+}
+
+.ls-err {
+  font-size: .82rem;
+  color: oklch(0.86 0.110 27);
+  background: oklch(0.22 0.090 25 / .55);
+  border: 2px solid oklch(0.42 0.140 25);
+  padding: 8px 12px;
+  display: none;
+  letter-spacing: .01em;
+}
+.ls-err.show { display: block; animation: ls-shake .35s cubic-bezier(.36,.07,.19,.97); }
+
+.ls-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+.ls-back {
+  background: none;
+  border: none;
+  color: var(--ink-muted);
+  font-family: var(--fb);
+  font-size: .8rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  letter-spacing: .02em;
+  transition: color .12s;
+}
+.ls-back:hover { color: var(--gold); }
+
+.ls-switch {
+  margin-top: 12px;
+  text-align: center;
+  font-size: .76rem;
+  color: var(--ink-faint);
+}
+.ls-switch a {
+  color: var(--gold-pale);
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: oklch(0.62 0.165 78 / .5);
+  text-underline-offset: 3px;
+}
+.ls-switch a:hover { color: var(--gold); }
+
+/* 服务器地址(底部细小) */
+.ls-server {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px dashed oklch(0.35 0.04 38);
+  font-size: .72rem;
+  color: var(--ink-faint);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ls-server input {
+  flex: 1;
+  background: transparent;
+  border: 1px solid oklch(0.30 0.04 38);
+  color: var(--ink-muted);
+  font-family: var(--fb);
+  font-size: .72rem;
+  padding: 4px 6px;
+}
+.ls-server input:focus { outline: none; border-color: var(--gold-dk); color: var(--ink); }
+
+/* 用户徽章(主应用 header 内,登录后显示) */
+.user-badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px;
+  margin: 14px auto 0;
+  background: oklch(0.18 0.025 240 / .8);
+  border: 2px solid oklch(0.32 0.050 38);
+  width: fit-content;
+  font-size: .82rem;
+}
+.user-badge .ub-role {
+  font-size: .72rem;
+  color: var(--ink-muted);
+  background: oklch(0.25 0.04 38);
+  padding: 2px 7px;
+  letter-spacing: .03em;
+}
+.user-badge .ub-name { color: var(--gold); font-weight: 700; }
+.user-badge .ub-logout {
+  background: none;
+  border: 1px solid oklch(0.40 0.13 25);
+  color: oklch(0.80 0.14 27);
+  font-family: var(--fb);
+  font-size: .72rem;
+  padding: 2px 8px;
+  cursor: pointer;
+  transition: background .12s, color .12s;
+}
+.user-badge .ub-logout:hover { background: oklch(0.30 0.13 25); color: var(--ink); }
+
+/* 角色权限:写操作元素只对 referee/admin 显示 */
+body:not(.can-edit) .req-edit { display: none !important; }
+/* AC 检查项: 别队的项目只读 */
+.cl-item.cl-readonly {
+  pointer-events: none;
+  cursor: default;
+  opacity: .85;
+}
+
+/* 角色权限:仅游客时禁用某些 tab(JS 处理后,这里是回退) */
+
+@keyframes ls-fdin  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ls-fdout { to { opacity: 0; transform: scale(1.04); filter: blur(2px); } }
+@keyframes ls-step-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes ls-pulse {
+  0%, 100% { transform: scale(1); filter: brightness(1); }
+  50%      { transform: scale(1.04); filter: brightness(1.08); }
+}
+@keyframes ls-drift-r {
+  from { transform: translateX(-200px); }
+  to   { transform: translateX(calc(100vw + 100px)); }
+}
+@keyframes ls-sway {
+  0%, 100% { transform: rotate(-5deg); }
+  50%      { transform: rotate(5deg); }
+}
+@keyframes ls-fly {
+  0%   { transform: translate(0, 0)         scale(0.6); opacity: 0; }
+  12%  { opacity: .9; }
+  35%  { transform: translate(40px, -28px)  scale(1);   opacity: 1; }
+  62%  { transform: translate(-12px, -56px) scale(.9);  opacity: .9; }
+  88%  { transform: translate(28px, -34px)  scale(.7);  opacity: .6; }
+  100% { transform: translate(0, 0)         scale(0.5); opacity: 0; }
+}
+@keyframes ls-twinkle {
+  0%, 100% { opacity: .35; }
+  50%      { opacity: 1; }
+}
+@keyframes ls-shake {
+  10%, 90% { transform: translateX(-1px); }
+  20%, 80% { transform: translateX(2px); }
+  30%, 50%, 70% { transform: translateX(-3px); }
+  40%, 60% { transform: translateX(3px); }
+}
+
+@media (max-width: 540px) {
+  .ls-card { padding: 22px 22px 20px; }
+  .ls-title { font-size: .82rem; }
+  .ls-role { padding: 11px 12px; }
+  .ls-role-icon { font-size: 1.4rem; }
+  .ls-role-name { font-size: .88rem; }
+  .ls-moon { width: 56px; height: 56px; top: 5%; right: 8%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #loginScreen, #loginScreen.hide,
+  .ls-moon, .ls-cloud, .ls-wheat, .ls-firefly, .ls-star,
+  .ls-step.on, .ls-err.show {
+    animation: none !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     登录界面
+     ═══════════════════════════════════════════════════════════════════════ -->
+<div id="loginScreen" role="dialog" aria-label="星露谷大赛 登录">
+  <!-- 背景层(像素风夜色) -->
+  <div class="ls-stars"   id="lsStars"   aria-hidden="true"></div>
+  <div class="ls-moon"                   aria-hidden="true"></div>
+  <div class="ls-cloud ls-cloud-a"       aria-hidden="true"></div>
+  <div class="ls-cloud ls-cloud-b"       aria-hidden="true"></div>
+  <div class="ls-cloud ls-cloud-c"       aria-hidden="true"></div>
+  <div class="ls-mountains"              aria-hidden="true"></div>
+  <div class="ls-village"                aria-hidden="true"></div>
+  <div class="ls-smoke-field" id="lsSmoke" aria-hidden="true"></div>
+  <div class="ls-ground"                 aria-hidden="true"></div>
+  <div class="ls-wheat-field" id="lsWheatField" aria-hidden="true"></div>
+  <div class="ls-fireflies"   id="lsFireflies"  aria-hidden="true"></div>
+
+  <!-- 登录卡片 -->
+  <div class="ls-card">
+    <div class="ls-logo" aria-hidden="true">🌾 🏆 ⚒️</div>
+    <h1 class="ls-title">星露谷联机大赛</h1>
+    <p class="ls-subtitle">第一届 · 老乡交流群</p>
+
+    <!-- Step 1: 角色选择 -->
+    <div class="ls-step on" data-step="roles">
+      <div class="ls-roles">
+        <button class="ls-role" data-role="guest" type="button">
+          <span class="ls-role-icon">👁️</span>
+          <span class="ls-role-body">
+            <div class="ls-role-name">游客</div>
+            <div class="ls-role-hint">查看排行榜与农场档案</div>
+          </span>
+          <span class="ls-role-arrow">›</span>
+        </button>
+        <button class="ls-role" data-role="player" type="button">
+          <span class="ls-role-icon">🌾</span>
+          <span class="ls-role-body">
+            <div class="ls-role-name">参赛选手</div>
+            <div class="ls-role-hint">查看本队详情、回档与处罚</div>
+          </span>
+          <span class="ls-role-arrow">›</span>
+        </button>
+        <button class="ls-role" data-role="referee" type="button">
+          <span class="ls-role-icon">⚖️</span>
+          <span class="ls-role-body">
+            <div class="ls-role-name">裁判</div>
+            <div class="ls-role-hint">评分、处罚、回档与队伍信息</div>
+          </span>
+          <span class="ls-role-arrow">›</span>
+        </button>
+      </div>
+
+      <div class="ls-server">
+        <span>服务器</span>
+        <input id="lsServer" type="text" placeholder="http://localhost:3722">
+      </div>
+    </div>
+
+    <!-- Step 2: 登录(选手/裁判共用) -->
+    <div class="ls-step" data-step="login">
+      <div class="ls-step-title" id="lsLoginTitle">登录</div>
+      <div class="ls-form">
+        <div>
+          <label class="ls-label" for="lsUsername">用户名</label>
+          <input class="ls-input" id="lsUsername" type="text" autocomplete="username" placeholder="例如 refereeA / alice">
+        </div>
+        <div>
+          <label class="ls-label" for="lsPassword">密码</label>
+          <input class="ls-input" id="lsPassword" type="password" autocomplete="current-password" placeholder="请输入密码">
+        </div>
+        <div class="ls-err" id="lsLoginErr" role="alert"></div>
+      </div>
+      <div class="ls-actions">
+        <button class="ls-back" type="button" onclick="loginShowStep('roles')">← 返回选择</button>
+        <button class="btn btn-gold" type="button" onclick="loginSubmit()">进入</button>
+      </div>
+      <div class="ls-switch" id="lsSwitchToRegister" style="display:none;">
+        没有账号? <a onclick="loginShowStep('register')">凭注册码注册</a>
+      </div>
+    </div>
+
+    <!-- Step 3: 选手注册 -->
+    <div class="ls-step" data-step="register">
+      <div class="ls-step-title">选手注册</div>
+      <div class="ls-form">
+        <div>
+          <label class="ls-label" for="lsRegCode">注册码</label>
+          <input class="ls-input" id="lsRegCode" type="text" placeholder="裁判私发的 8 位码">
+        </div>
+        <div>
+          <label class="ls-label" for="lsRegUser">账号用户名</label>
+          <input class="ls-input" id="lsRegUser" type="text" autocomplete="username" placeholder="登录用,英文/数字">
+        </div>
+        <div>
+          <label class="ls-label" for="lsRegName">显示名(游戏ID)</label>
+          <input class="ls-input" id="lsRegName" type="text" placeholder="排行榜显示的名字">
+        </div>
+        <div>
+          <label class="ls-label" for="lsRegPwd">设置密码</label>
+          <input class="ls-input" id="lsRegPwd" type="password" autocomplete="new-password" placeholder="至少 6 位">
+        </div>
+        <div class="ls-err" id="lsRegErr" role="alert"></div>
+      </div>
+      <div class="ls-actions">
+        <button class="ls-back" type="button" onclick="loginShowStep('login')">← 已有账号,去登录</button>
+        <button class="btn btn-green" type="button" onclick="registerSubmit()">注册并进入</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="stars"></div>
+
+<div id="app">
+  <header>
+    <span class="hdr-sub">星露谷老乡交流群</span>
+    <h1 class="hdr-title">第一届星露谷联机大赛</h1>
+    <p class="hdr-tagline">一起种田 · 一起变富 · 一起拿奖</p>
+    <div class="hdr-deco">
+      <span>🌾</span><span>🪙</span><span>⚔️</span>
+    </div>
+    <div class="prize-strip pp-gold">
+      🏆 总奖池 1000元 · 冠军 500元 · 亚军 300元 · 季军 200元
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab-btn active" data-tab="lb"   role="tab">🏆 排行榜</button>
+    <button class="tab-btn"        data-tab="sc"   role="tab">🌾 农场档案</button>
+    <button class="tab-btn"        data-tab="reg"  role="tab">📝 队伍注册</button>
+    <button class="tab-btn"        data-tab="pen"  role="tab">🃏 处罚记录</button>
+    <button class="tab-btn"        data-tab="ac"   role="tab">🔍 防作弊</button>
+    <button class="tab-btn"        data-tab="rb"   role="tab">🔄 回档追踪</button>
+  </nav>
+
+  <!-- ═══ 排行榜 ═══ -->
+  <section class="tab on" id="tab-lb" role="tabpanel">
+    <h2 class="sh">实时排名</h2>
+    <!-- live 状态栏 -->
+    <div id="liveBar" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:8px 14px;margin-bottom:14px;font-size:.85rem;background:oklch(0.18 0.035 145);border:2px solid var(--green-dk);display:none;">
+      <span id="liveStatus" style="color:var(--green-lt);"></span>
+      <span id="liveTime"   style="color:var(--ink-faint);"></span>
+    </div>
+    <div class="lb-list" id="lbList"></div>
+  </section>
+
+  <!-- ═══ 农场档案 ═══ -->
+  <section class="tab" id="tab-sc" role="tabpanel">
+    <h2 class="sh">农场档案</h2>
+    <!-- 服务器同步栏(仅裁判可见,自动定时同步) -->
+    <div class="pp sync-bar req-edit" id="syncBar">
+      <div class="sync-bar-row">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <span style="font-family:var(--fp);font-size:.65rem;color:var(--gold);">📡 后端服务器</span>
+          <input class="inp" id="srvUrl" type="text" placeholder="http://localhost:3722"
+            style="width:200px;font-size:.85rem;padding:6px 10px;"
+            oninput="localStorage.setItem('sv_server',this.value)">
+          <span style="font-size:.78rem;color:var(--ink-faint);">每 60 秒自动同步</span>
+        </div>
+      </div>
+      <p id="syncStatus" style="font-size:.85rem;color:var(--ink-muted);margin-top:8px;display:none;"></p>
+    </div>
+    <!-- 管理员状态栏（由 renderArchive 渲染） -->
+    <div id="archiveAdminBar"></div>
+    <!-- 各队伍档案卡片（由 renderArchive 渲染） -->
+    <div id="archiveGrid"></div>
+  </section>
+
+  <!-- ═══ 处罚记录 ═══ -->
+  <section class="tab" id="tab-pen" role="tabpanel">
+    <h2 class="sh">处罚记录</h2>
+    <div id="penPanel">
+      <div class="row-between mb8">
+        <div style="padding:10px 14px;" class="pp">
+          <p style="font-family:var(--fp);font-size:.70rem;color:var(--gold);margin-bottom:8px;">处罚规则</p>
+          <p style="font-size:.90rem;color:var(--ink-muted);">🟡 黄牌：扣除总分 20%；累计 3 张黄牌自动升级红牌</p>
+          <p style="font-size:.90rem;color:var(--ink-muted);margin-top:6px;">🔴 红牌：总分清零（100% 扣除），无法补救</p>
+        </div>
+      </div>
+      <div class="pen-grid" id="penGrid"></div>
+      <hr class="sep-line">
+      <div class="pen-log-wrap pp" style="padding:20px;">
+        <p class="sh-sm">处罚日志</p>
+        <div class="pen-log" id="penLog"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ 队伍注册 ═══ -->
+  <section class="tab" id="tab-reg" role="tabpanel">
+    <h2 class="sh">队伍信息注册</h2>
+    <div class="pp req-edit" style="padding:18px 20px;margin-bottom:20px;">
+      <div id="reg-scope-info"
+        style="font-size:.86rem;color:var(--gold);background:oklch(0.30 0.075 80 / .35);
+        padding:8px 12px;margin-bottom:14px;border:2px solid var(--gold-dk);">
+        <!-- 由 renderReg 写入: 「你是 X 队裁判,只可编辑本队信息」 -->
+      </div>
+      <input type="hidden" id="reg-tid">
+      <input type="hidden" id="reg-referee">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:14px;">
+        <div>
+          <label style="font-size:.82rem;color:var(--ink-muted);display:block;margin-bottom:4px;">队长（房主游戏ID）</label>
+          <input class="inp" id="reg-leader" type="text" placeholder="例如 老张" style="width:100%;">
+        </div>
+        <div>
+          <label style="font-size:.82rem;color:var(--ink-muted);display:block;margin-bottom:4px;">队员（逗号或空格分隔）</label>
+          <input class="inp" id="reg-members" type="text" placeholder="队员1, 队员2, 队员3" style="width:100%;">
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-green" onclick="submitTeamReg()">💾 提交本队信息</button>
+        <button class="btn" onclick="createInviteCode()"
+          style="background:var(--surface2);font-size:.82rem;"
+          title="生成一个注册码,发给选手在检测工具中使用">📨 生成选手注册码</button>
+        <span id="reg-msg" style="font-size:.85rem;display:none;"></span>
+      </div>
+      <div id="reg-invites-list" style="margin-top:14px;font-size:.80rem;color:var(--ink-muted);"></div>
+    </div>
+
+    <h3 class="sh-sm" style="margin-bottom:12px;">全部队伍信息（仅本队可编辑）</h3>
+    <div id="regGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;"></div>
+  </section>
+
+  <!-- ═══ 防作弊 ═══ -->
+  <section class="tab" id="tab-ac" role="tabpanel">
+    <h2 class="sh">防作弊日常核查</h2>
+    <div class="ac-controls">
+      <label>核查日期：</label>
+      <input class="inp" id="acDate" type="date" style="width:auto;max-width:180px;">
+      <button class="btn btn-green btn-sm" onclick="renderAC()">刷新</button>
+      <span style="font-size:.90rem;color:var(--ink-muted);">每日核查清单，按日期独立保存</span>
+    </div>
+    <!-- 远程上报记录(每 30 秒自动刷新) -->
+    <div class="pp req-edit" style="padding:16px;margin-bottom:18px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+        <p class="sh-sm" style="margin:0;padding:0;border:none;">📡 远程上报记录</p>
+        <span style="font-size:.78rem;color:var(--ink-faint);">每 30 秒自动刷新 · <span id="remoteACTime"></span></span>
+      </div>
+      <div id="remoteACGrid">
+        <p style="font-size:.88rem;color:var(--ink-faint);text-align:center;padding:16px 0;">正在加载…</p>
+      </div>
+    </div>
+
+    <div class="ac-grid" id="acGrid"></div>
+  </section>
+
+  <!-- ═══ 回档追踪 ═══ -->
+  <section class="tab" id="tab-rb" role="tabpanel">
+    <h2 class="sh">回档追踪</h2>
+    <div style="padding:12px 16px;margin-bottom:16px;" class="pp">
+      <p style="font-family:var(--fp);font-size:.72rem;color:var(--gold);margin-bottom:8px;">📜 回档规则</p>
+      <p style="font-size:.92rem;color:var(--ink-muted);">每季节最多回档 2 天，全年共计 8 天。超出限额将被视为违规，需向裁判报备。</p>
+    </div>
+    <div class="rb-grid" id="rbGrid"></div>
+  </section>
+</div>
+
+<div id="toasts"></div>
+
+<dialog id="dlg">
+  <p class="dlg-title" id="dlgTitle"></p>
+  <p class="dlg-body"  id="dlgBody"></p>
+  <div class="dlg-actions" id="dlgActions"></div>
+</dialog>
+
+<script>
+/* ═══════════════════════════════════════════════
+   DATA
+═══════════════════════════════════════════════ */
+const RANKED = ['A','B','C','D','E','F','G','H'].map(id => ({ id }));
+const PART   = ['I','J','K'].map(id => ({ id }));
+const ALL_TEAMS = [...RANKED, ...PART];
+
+const CATS = [
+  { id:'base',        label:'基础分数',  hint:'总收入÷1.5+现金（自动）',        max:'', auto:true },
+  { id:'community',   label:'村庄建设',  hint:'社区中心25w · Joja10w（自动）',   max:'', auto:true },
+  { id:'friendship',  label:'好感度奖励', hint:'8心+2w/NPC · 结婚5w（自动）',    max:'', auto:true },
+  { id:'skillBonus',  label:'技能奖励',  hint:'5技能全10级·5w/人（自动）',      max:'', auto:true },
+  { id:'stream',      label:'直播人气',  hint:'1000人次=1w · 封顶5w（手动）',   max:'50000' },
+  { id:'special',     label:'特殊事件',  hint:'矿120/沙漠100各3w（可自动+手动）', max:'' },
+];
+
+const SEASONS = [
+  { id:'spring', label:'春', cls:'spr' },
+  { id:'summer', label:'夏', cls:'sum' },
+  { id:'fall',   label:'秋', cls:'fal' },
+  { id:'winter', label:'冬', cls:'win' },
+];
+
+const AC_ITEMS = [
+  '确认无 MOD（截图显示原版星露谷）',
+  '下线前全部重要物品已塞进箱子（截图核查）',
+  '与队长核查昨日物品清单，今日开档截图对比',
+  '抽查直播录像，无私下偷发育行为',
+  '存档未被替换，存档序号/时间戳正常',
+];
+
+const ADMIN_PW = 'stardew2026';
+const STORE_KEY = 'svcomp_v2';
+
+/* ═══════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════ */
+let state = load();
+let adminLoggedIn = false;
+
+function defaultState() {
+  const scores = {}, penalties = {}, rollbacks = {};
+  ALL_TEAMS.forEach(t => {
+    scores[t.id]    = { base:0, community:0, friendship:0, skillBonus:0, stream:0, special:0 };
+    penalties[t.id] = { yellow:0, red:false, log:[] };
+    rollbacks[t.id] = { spring:0, summer:0, fall:0, winter:0 };
+  });
+  return { scores, penalties, rollbacks, anticheat:{}, teamInfo:{}, syncMeta:{} };
+}
+
+// 获取队伍注册信息，未注册时返回空对象
+function ti(tid) {
+  const info = (state.teamInfo || {})[tid] || {};
+  return {
+    leader:  info.leader  || '',
+    members: info.members || [],
+    referee: info.referee || '',
+  };
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (!raw) return defaultState();
+    const parsed = JSON.parse(raw);
+    // ensure all teams exist + 旧版字段迁移
+    const def = defaultState();
+    ALL_TEAMS.forEach(t => {
+      if (!parsed.scores[t.id])    parsed.scores[t.id]    = def.scores[t.id];
+      if (!parsed.penalties[t.id]) parsed.penalties[t.id] = def.penalties[t.id];
+      if (!parsed.rollbacks[t.id]) parsed.rollbacks[t.id] = def.rollbacks[t.id];
+      // 旧版 normalBonus → skillBonus,base 字段补默认 0
+      const s = parsed.scores[t.id];
+      if (s.normalBonus !== undefined && s.skillBonus === undefined) {
+        s.skillBonus = s.normalBonus;
+      }
+      if (s.skillBonus === undefined) s.skillBonus = 0;
+      if (s.base       === undefined) s.base       = 0;
+      delete s.normalBonus;
+    });
+    if (!parsed.anticheat) parsed.anticheat = {};
+    if (!parsed.syncMeta)  parsed.syncMeta  = {};
+    if (!parsed.teamInfo)  parsed.teamInfo  = {};
+    return parsed;
+  } catch { return defaultState(); }
+}
+
+function save() {
+  localStorage.setItem(STORE_KEY, JSON.stringify(state));
+  publishState();   // 兼容旧的 /publish 快照(过渡期)
+}
+
+// 防抖：连续保存时合并成一次请求
+let _publishTimer = null;
+function publishState() {
+  // 新系统下,权威源是后端 state.json,通过 pushToBackend 按操作推送。
+  // 这里保留旧 /publish 路径作为兼容,但仅在 admin 全局token下生效。
+  clearTimeout(_publishTimer);
+  _publishTimer = setTimeout(async () => {
+    const url = localStorage.getItem('sv_server') || localStorage.getItem(SERVER_KEY);
+    if (!url) return;
+    try {
+      await fetch(`${url.trim().replace(/\/+$/,'')}/publish`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token: 'sv2026token',
+          state: { scores: state.scores, penalties: state.penalties, rollbacks: state.rollbacks, syncMeta: state.syncMeta || {}, teamInfo: state.teamInfo || {} },
+          published_at: new Date().toLocaleString('zh-CN'),
+        }),
+        signal: AbortSignal.timeout(6000),
+      });
+    } catch { /* 静默失败 */ }
+  }, 800);
+}
+
+/**
+ * 把 state 中某队伍某类别的最新数据,推送到后端权威 state.json
+ * 仅 referee/admin 有token时生效;失败会弹 toast 提示
+ * @param {string} tid 队伍编号
+ * @param {'scores'|'penalties'|'rollbacks'|'teaminfo'} kind 数据类别
+ */
+async function pushToBackend(tid, kind) {
+  if (!currentUser || !currentUser.token) return;
+  if (currentUser.role !== 'referee' && currentUser.role !== 'admin') return;
+  const token = currentUser.token;
+  try {
+    if (kind === 'scores') {
+      await api('/state/scores', { token, tid, scores: state.scores[tid] || {} });
+    } else if (kind === 'penalties') {
+      const p = state.penalties[tid] || {};
+      await api('/state/penalties', { token, tid, yellow: p.yellow || 0, red: !!p.red });
+    } else if (kind === 'rollbacks') {
+      await api('/state/rollbacks', { token, tid, rollbacks: state.rollbacks[tid] || {} });
+    } else if (kind === 'teaminfo') {
+      const info = state.teamInfo[tid] || {};
+      await api('/state/teaminfo', { token, tid,
+        leader:  info.leader  || '',
+        members: info.members || [],
+        referee: info.referee || '',
+      });
+    }
+  } catch (e) {
+    toast(`后端同步失败:${e.message}`, 'err');
+    console.warn(`[pushToBackend ${kind}/${tid}]`, e);
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   SCORE CALC
+═══════════════════════════════════════════════ */
+function rawScore(tid) {
+  const s = state.scores[tid];
+  return CATS.reduce((acc,c) => acc + (Number(s[c.id]) || 0), 0);
+}
+
+/**
+ * 紧凑分数格式 — 防止排行榜大数字溢出框框
+ *   < 1万:   原样千分位 "8,500"
+ *   < 1亿:   X.Y万 "1295万" / "12.5万"
+ *   ≥ 1亿:   X.YY亿 "1.29亿"
+ */
+function fmtScore(n) {
+  n = Number(n) || 0;
+  if (n < 10000) return n.toLocaleString();
+  if (n < 100000000) {
+    const v = n / 10000;
+    return (v >= 100 ? Math.round(v) : v.toFixed(1)) + '万';
+  }
+  return (n / 100000000).toFixed(2) + '亿';
+}
+
+function finalScore(tid) {
+  const pen = state.penalties[tid];
+  if (pen.red) return 0;
+  let s = rawScore(tid);
+  const yCapped = Math.min(pen.yellow, 3);
+  for (let i = 0; i < yCapped; i++) s = Math.floor(s * 0.8);
+  return Math.max(0, s);
+}
+
+/* ═══════════════════════════════════════════════
+   STARS
+═══════════════════════════════════════════════ */
+(function spawnStars() {
+  const el = document.getElementById('stars');
+  for (let i = 0; i < 90; i++) {
+    const s = document.createElement('div');
+    s.className = 'star' + (Math.random() > .75 ? ' big' : '');
+    s.style.left = (Math.random()*100) + '%';
+    s.style.top  = (Math.random()*100) + '%';
+    s.style.setProperty('--d',  (1.5 + Math.random()*2.5) + 's');
+    s.style.setProperty('--del',(Math.random()*3) + 's');
+    el.appendChild(s);
+  }
+})();
+
+/* ═══════════════════════════════════════════════
+   TABS
+═══════════════════════════════════════════════ */
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('on');
+    if (btn.dataset.tab === 'lb')  renderLB();
+    if (btn.dataset.tab === 'ac')  renderAC();
+    if (btn.dataset.tab === 'rb')  renderRB();
+    if (btn.dataset.tab === 'sc')  renderArchive();
+    if (btn.dataset.tab === 'reg') renderReg();
+    if (btn.dataset.tab === 'pen' && adminLoggedIn) renderPen();
+  });
+});
+
+/* ═══════════════════════════════════════════════
+   LEADERBOARD
+═══════════════════════════════════════════════ */
+function renderLB() {
+  const el = document.getElementById('lbList');
+  const sorted = [...RANKED].sort((a,b) => finalScore(b.id) - finalScore(a.id));
+  const prizes = ['🥇','🥈','🥉'];
+
+  let html = '';
+  sorted.forEach((t, i) => {
+    const pen  = state.penalties[t.id];
+    const fs   = finalScore(t.id);
+    const rs   = rawScore(t.id);
+    const elim = pen.red;
+    const rank = i + 1;
+    const rankCls = rank <= 3 ? `r${rank}` : '';
+    const rankDisp = rank <= 3 ? prizes[rank-1] : `#${rank}`;
+    const prizeAmt = rank===1?'¥500':rank===2?'¥300':rank===3?'¥200':'';
+
+    let cardHtml = '';
+    if (pen.yellow > 0) cardHtml += `<span class="badge badge-y">黄牌×${pen.yellow}</span>`;
+    if (pen.red)        cardHtml += `<span class="badge badge-r">红牌</span>`;
+
+    html += `
+      <div class="lb-row pp ${elim?'elim':''}" onclick="openTeamSummary('${t.id}')">
+        <div class="lb-rank ${rankCls}">${rankDisp}</div>
+        <div class="lb-info">
+          <div class="lb-team-id">队伍 ${t.id}</div>
+          <div class="lb-leader">${ti(t.id).leader ? '👑 '+ti(t.id).leader : '<span style="color:var(--ink-faint);font-size:.78rem;">未注册</span>'}</div>
+          <div class="lb-members">${ti(t.id).members.join(' · ') || '—'}</div>
+        </div>
+        <div>
+          <div class="lb-score" title="${fs.toLocaleString()}">${fmtScore(fs)}</div>
+          ${rs !== fs ? `<div class="lb-score-label">原始 ${fmtScore(rs)}</div>` : '<div class="lb-score-label">分值</div>'}
+        </div>
+        <div class="lb-cards">${cardHtml}</div>
+        <div class="lb-prize">${prizeAmt}</div>
+      </div>`;
+  });
+
+  // participation section
+  html += `<hr class="sep-line">
+    <p class="participation-note">── 参与奖区域（不参与排名）──</p>`;
+  PART.forEach(t => {
+    html += `
+      <div class="lb-row pp participation" onclick="openTeamSummary('${t.id}')">
+        <div class="lb-rank" style="color:var(--ink-muted)">—</div>
+        <div class="lb-info">
+          <div class="lb-team-id">队伍 ${t.id}</div>
+          <div class="lb-members">${ti(t.id).members.join(' · ') || '—'}</div>
+        </div>
+        <div></div>
+        <div class="lb-cards"><span class="badge badge-p">参与奖</span></div>
+        <div class="lb-prize"></div>
+      </div>`;
+  });
+
+  el.innerHTML = html;
+}
+
+/* ═══════════════════════════════════════════════
+   ADMIN AUTH
+═══════════════════════════════════════════════ */
+function tryLogin() {
+  /* 保留兼容，scLock 已移除，登录通过模态框完成 */
+}
+
+/* 旧的密码门已删,改用账号登录:无操作 */
+
+/* 旧 adminLogout 已废:账号体系下用 logout() 退出当前登录 */
+function adminLogout() { logout(); }
+
+/* ═══════════════════════════════════════════════
+   SCORE MANAGEMENT
+═══════════════════════════════════════════════ */
+function renderSC() {
+  const el = document.getElementById('scoreGrid');
+  let html = '';
+  ALL_TEAMS.forEach(t => {
+    const s   = state.scores[t.id];
+    const pen = state.penalties[t.id];
+    const rs  = rawScore(t.id);
+    const fs  = finalScore(t.id);
+    const zeroed = pen.red;
+    const isParticipation = PART.find(p => p.id === t.id);
+
+    html += `<div class="score-card pp">
+      <div class="score-head">
+        <div class="score-head-left">
+          <span class="score-tid">队伍 ${t.id}</span>
+          <span class="score-leader">${ti(t.id).leader ? '👑 ' + ti(t.id).leader : ''}</span>
+          ${isParticipation ? '<span class="badge badge-p">参与奖</span>' : ''}
+        </div>
+        <button class="btn btn-green btn-sm" onclick="saveScore('${t.id}')">💾 保存</button>
+      </div>
+      <div class="score-cats">`;
+
+    CATS.forEach(c => {
+      html += `<div class="score-cat">
+        <label>${c.label}</label>
+        <input class="inp inp-sm" id="s_${t.id}_${c.id}" type="number" min="0"
+          ${c.max ? `max="${c.max}"` : ''} value="${s[c.id]||0}" placeholder="0">
+        <span class="cat-hint">${c.hint}</span>
+      </div>`;
+    });
+
+    // 同步元数据提示
+    const meta = (state.syncMeta || {})[t.id];
+    const metaHtml = meta ? `
+      <div class="sync-meta">
+        📡 ${meta.player} 上报 · ${meta.current_date} · 金钱 ${(meta.money||0).toLocaleString()} G
+        · 友谊总分 ${meta.friendship_total||0} · ${meta.timestamp}
+      </div>` : '';
+
+    html += `</div>${metaHtml}
+      <div class="score-foot">
+        <span class="score-raw">原始总分：${rs.toLocaleString()}</span>
+        ${pen.yellow ? `<span style="font-size:.85rem;color:var(--yellow)">黄牌×${pen.yellow} (×0.8^${pen.yellow})</span>` : ''}
+        ${pen.red    ? `<span class="badge badge-r">红牌</span>` : ''}
+        <span class="score-after-pen ${zeroed?'zeroed':''}">
+          最终得分：${fs.toLocaleString()}
+        </span>
+      </div>
+    </div>`;
+  });
+  el.innerHTML = html;
+}
+
+function saveScore(tid) {
+  CATS.forEach(c => {
+    const el = document.getElementById(`s_${tid}_${c.id}`);
+    let v = Number(el.value) || 0;
+    if (c.max) v = Math.min(v, Number(c.max));
+    state.scores[tid][c.id] = v;
+  });
+  save();
+  pushToBackend(tid, 'scores');
+  renderLB();
+  renderArchive();
+  toast(`队伍 ${tid} 分数已保存 ✓`, 'ok');
+}
+
+/* ═══════════════════════════════════════════════
+   ARCHIVE TAB & TEAM DETAIL MODAL
+═══════════════════════════════════════════════ */
+const CAT_ICONS  = { base:'💰', community:'🏘️', friendship:'🤝', skillBonus:'⚡', stream:'📺', special:'⭐' };
+const SEAS_ICONS = { spring:'🌱', summer:'☀️', fall:'🍂', winter:'❄️' };
+
+function openTeamDetail(tid) {
+  document.getElementById('tdPanel').innerHTML = buildTeamDetail(tid);
+  const o = document.getElementById('tdOverlay');
+  o.style.display = 'flex';
+  o.dataset.tid = tid;
+  document.body.style.overflow = 'hidden';
+}
+
+/* 排行榜点击的简化弹窗 — 只展示关键信息,无编辑 */
+function openTeamSummary(tid) {
+  const s    = state.scores[tid]    || {};
+  const pen  = state.penalties[tid] || { yellow:0, red:false };
+  const rb   = state.rollbacks[tid] || {};
+  const info = ti(tid);
+  const fs   = finalScore(tid);
+  const rs   = rawScore(tid);
+  const isP  = !RANKED.find(x => x.id === tid);
+
+  // 实时排名(榜单已按 fs 排序,这里直接算)
+  const sorted = [...RANKED].sort((a,b) => finalScore(b.id) - finalScore(a.id));
+  const rankIdx = sorted.findIndex(x => x.id === tid);
+  const rankDisp = isP ? '参与奖' :
+                   rankIdx === 0 ? '🥇 冠军' :
+                   rankIdx === 1 ? '🥈 亚军' :
+                   rankIdx === 2 ? '🥉 季军' :
+                   `第 ${rankIdx + 1} 名`;
+  const prize = rankIdx === 0 ? '¥500' : rankIdx === 1 ? '¥300' : rankIdx === 2 ? '¥200' : '';
+
+  // 5 个分项(显示万为单位,够紧凑)
+  const catRows = CATS.map(c => {
+    const v = s[c.id] || 0;
+    return `
+      <div class="ts-cat-row">
+        <span class="ts-cat-icon">${CAT_ICONS[c.id] || '·'}</span>
+        <span class="ts-cat-name">${c.label}</span>
+        <span class="ts-cat-val">${v ? (v/10000).toFixed(1) + 'w' : '—'}</span>
+      </div>`;
+  }).join('');
+
+  // 处罚 + 回档(只在有时显示)
+  const rbTotal = SEASONS.reduce((a,ss) => a + (rb[ss.id] || 0), 0);
+  let warnRow = '';
+  if (pen.red)             warnRow += `<span class="ts-warn ts-warn-red">红牌淘汰</span>`;
+  if (pen.yellow)          warnRow += `<span class="ts-warn ts-warn-yellow">黄牌 × ${pen.yellow}</span>`;
+  if (rbTotal)             warnRow += `<span class="ts-warn ts-warn-rb">已回档 ${rbTotal} 次</span>`;
+
+  document.getElementById('tdPanel').innerHTML = `
+    <div class="ts-card">
+      <button class="ts-close" type="button" onclick="closeTeamDetail()" aria-label="关闭">✕</button>
+
+      <header class="ts-head">
+        <div class="ts-rank">${rankDisp}</div>
+        <h2 class="ts-team">队伍 ${tid}</h2>
+        ${prize ? `<div class="ts-prize">${prize}</div>` : ''}
+      </header>
+
+      <div class="ts-roster">
+        ${info.leader ? `<div class="ts-leader">👑 ${info.leader}</div>`
+                      : '<div class="ts-leader ts-noinfo">未注册队伍信息</div>'}
+        ${info.members && info.members.length
+            ? `<div class="ts-members">${info.members.join(' · ')}</div>`
+            : ''}
+      </div>
+
+      ${warnRow ? `<div class="ts-warns">${warnRow}</div>` : ''}
+
+      <div class="ts-score-strip">
+        <div class="ts-score-final">
+          <div class="ts-score-label">最终得分</div>
+          <div class="ts-score-num" title="${fs.toLocaleString()}">${fmtScore(fs)}</div>
+          ${rs !== fs ? `<div class="ts-score-raw">原始 ${fmtScore(rs)}</div>` : ''}
+        </div>
+      </div>
+
+      <div class="ts-cats">${catRows}</div>
+
+      <footer class="ts-foot">
+        想看农场存档详情? 切到「🌾 农场档案」Tab,点队伍卡片打开详细页。
+      </footer>
+    </div>
+  `;
+  const o = document.getElementById('tdOverlay');
+  o.style.display = 'flex';
+  o.dataset.tid   = tid;
+  document.body.style.overflow = 'hidden';
+}
+
+function closeTeamDetail() {
+  const o = document.getElementById('tdOverlay');
+  if (o) { o.style.display = 'none'; document.body.style.overflow = ''; }
+}
+
+/* 旧版农场档案弹窗密码门已废,改用账号体系 */
+function tryLoginModal() {}
+
+function saveScoreModal(tid) {
+  CATS.forEach(c => {
+    const el = document.getElementById(`s_${tid}_${c.id}`);
+    if (!el) return;
+    let v = Number(el.value) || 0;
+    if (c.max) v = Math.min(v, Number(c.max));
+    state.scores[tid][c.id] = v;
+  });
+  save();
+  pushToBackend(tid, 'scores');
+  renderLB();
+  renderArchive();
+  const o = document.getElementById('tdOverlay');
+  if (o && o.style.display !== 'none' && o.dataset.tid === tid)
+    document.getElementById('tdPanel').innerHTML = buildTeamDetail(tid);
+  toast(`队伍 ${tid} 分数已保存 ✓`, 'ok');
+}
+
+function buildTeamDetail(tid) {
+  const t   = ALL_TEAMS.find(x => x.id === tid);
+  const s   = state.scores[tid]    || {};
+  const pen = state.penalties[tid]  || { yellow:0, red:false, log:[] };
+  const rb  = state.rollbacks[tid]  || {};
+  const meta = (state.syncMeta || {})[tid];
+  const fs   = finalScore(tid);
+  const rs   = rawScore(tid);
+  const isRanked = !!RANKED.find(x => x.id === tid);
+
+  let rankStr = '';
+  if (isRanked) {
+    const idx = [...RANKED].sort((a,b) => finalScore(b.id)-finalScore(a.id)).findIndex(x => x.id === tid);
+    rankStr = idx < 3 ? ['🥇','🥈','🥉'][idx] : `#${idx+1}`;
+  }
+
+  // ── 积分明细（带推导说明）
+  function _scoreHint(cid) {
+    if (!meta) return '';
+    if (cid === 'community') {
+      const cc   = meta.cc_complete;
+      const joja = meta.joja_complete;
+      const ccTag  = cc   ? '<span style="color:var(--green-lt)">✅ 社区中心献祭 +25万</span>'
+                           : '<span style="color:var(--ink-faint)">❌ 社区中心（未完成）</span>';
+      const jojaTag= joja ? '<span style="color:var(--yellow)">⚡ Joja路线 +10万</span>'
+                          : '<span style="color:var(--ink-faint)">❌ Joja路线</span>';
+      return `<div style="font-size:.74rem;line-height:1.7;margin-top:3px;padding-left:6px;">${ccTag}<br>${jojaTag}</div>`;
+    }
+    if (cid === 'friendship') {
+      const cnt  = meta.friend_8heart_count || 0;
+      const npcs = (meta.friend_8heart_npcs || []).slice(0,5).join('·');
+      const more = (meta.friend_8heart_npcs||[]).length > 5 ? `等${(meta.friend_8heart_npcs||[]).length}人` : '';
+      const sp   = meta.spouse;
+      const h8   = cnt ? `<span style="color:var(--green-lt)">❤️ ${cnt}人达8心 × 2万 = ${(cnt*2)}万</span>` : '<span style="color:var(--ink-faint)">❤️ 0人达8心</span>';
+      const spTag= sp  ? `<span style="color:var(--yellow)">💍 结婚：${sp} +5万</span>` : '<span style="color:var(--ink-faint)">💍 未结婚</span>';
+      const npcStr = cnt ? `<div style="font-size:.70rem;color:var(--ink-muted);padding-left:6px;">${npcs}${more}</div>` : '';
+      return `<div style="font-size:.74rem;line-height:1.7;margin-top:3px;padding-left:6px;">${h8}<br>${spTag}</div>${npcStr}`;
+    }
+    if (cid === 'special') {
+      const m120 = meta.mine_120_done;
+      const s100 = meta.skull_100_done;
+      const skull= meta.skull_cavern_level || 0;
+      const mTag = m120 ? '<span style="color:var(--green-lt)">⛏️ 矿洞120层 ✅ +3万</span>'
+                        : `<span style="color:var(--ink-faint)">⛏️ 矿洞120层 ❌ (当前${meta.deepest_mine||0}层)</span>`;
+      const sTag = s100 ? '<span style="color:var(--green-lt)">💀 骷髅洞100层 ✅ +3万</span>'
+                        : `<span style="color:var(--ink-faint)">💀 骷髅洞100层 ❌ (当前${skull}层)</span>`;
+      const autoV = (meta.auto_special_score || 0);
+      const diff  = (s.special||0) - autoV;
+      const manTag= diff>0 ? `<span style="color:var(--ink-muted)">📝 手动额外 +${(diff/10000).toFixed(1)}万</span>` : '';
+      return `<div style="font-size:.74rem;line-height:1.7;margin-top:3px;padding-left:6px;">${mTag}<br>${sTag}${manTag?'<br>'+manTag:''}</div>`;
+    }
+    if (cid === 'stream') {
+      const v = s.stream||0;
+      const est = v>0 ? Math.floor(v/10000)*1000 : 0;
+      return est ? `<div style="font-size:.73rem;color:var(--ink-faint);margin-top:2px;padding-left:6px;">约 ${est.toLocaleString()} 人次观看</div>` : '';
+    }
+    if (cid === 'skillBonus') {
+      const qualified = meta.skill_qualified || 0;
+      const perFarmer = meta.skills_per_farmer || [];
+      if (!perFarmer.length) return '';
+      const names = perFarmer.map(p => `${p.all_10?'✅':'❌'} ${p.name||'?'}`).join(' · ');
+      return `<div style="font-size:.73rem;color:var(--ink-faint);margin-top:2px;padding-left:6px;">${qualified}/${perFarmer.length} 人达成 · ${names}</div>`;
+    }
+    if (cid === 'base') {
+      const te = meta.total_earned || 0;
+      const mn = meta.money || 0;
+      return `<div style="font-size:.73rem;color:var(--ink-faint);margin-top:2px;padding-left:6px;">总收入 ${te.toLocaleString()}÷1.5 + 现金 ${mn.toLocaleString()}</div>`;
+    }
+    return '';
+  }
+  const scoreRows = CATS.map(c => `
+    <div class="td-row" style="flex-direction:column;align-items:stretch;padding:8px 14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span class="td-lbl">${CAT_ICONS[c.id]||''} ${c.label}</span>
+        <span class="td-val">${(s[c.id]||0).toLocaleString()}</span>
+      </div>
+      ${_scoreHint(c.id)}
+    </div>`).join('');
+
+  // ── 编辑积分区:仅本队裁判或 admin 可见
+  const _autoFilled = (cid) => meta && (cid==='community'||cid==='friendship');
+  const adminSec = canEditTeam(tid) ? `
+    <div class="td-sec">
+      <div class="td-sec-title">✏️ 编辑积分</div>
+      <div style="padding:12px 14px;display:flex;flex-direction:column;gap:8px;">
+        ${CATS.map(c=>`
+          <div style="display:grid;grid-template-columns:1fr 130px;align-items:center;gap:14px;">
+            <span style="font-size:.88rem;color:var(--ink);">
+              ${CAT_ICONS[c.id]||''} ${c.label}${c.auto?' <span style="font-size:.72rem;color:var(--green-lt);margin-left:4px;">🤖 自动</span>':''}
+            </span>
+            <input class="inp inp-sm" id="s_${tid}_${c.id}" type="number" min="0"
+              ${c.max?`max="${c.max}"`:''}
+              value="${s[c.id]||0}" style="width:100%;text-align:right;font-family:var(--fp);font-size:.82rem;"
+              ${c.auto?'title="由存档自动计算,同步后覆盖"':''}>
+          </div>`).join('')}
+        <button class="btn btn-green btn-sm" style="margin-top:8px;align-self:flex-start;"
+          onclick="saveScoreModal('${tid}')">💾 保存</button>
+      </div>
+    </div>` : '';
+
+  // ── 存档各分区（有数据时展开为六个子区）
+  let dataSecs = '';
+  if (meta) {
+    const sk = meta.skills || {};
+
+    // 技能格子
+    function skillBar(lv) {
+      lv = Math.min(10, Math.max(0, lv||0));
+      return Array.from({length:10}, (_,i) =>
+        `<span style="display:inline-block;width:7px;height:7px;margin:0 1px;
+          background:${i<lv?(lv>=10?'var(--gold)':lv>=7?'var(--green-lt)':'var(--ink-muted)'):'oklch(0.22 0.015 240)'}"></span>`
+      ).join('');
+    }
+
+    // ①农场概况
+    dataSecs += `
+      <div class="td-sec">
+        <div class="td-sec-title">🌾 农场概况
+          <span style="font-weight:400;font-family:var(--fb);font-size:.73rem;color:var(--ink-faint);">
+            ${meta.player} · 存档 ${meta.save_mtime||''}
+          </span>
+        </div>
+        <div class="td-row"><span class="td-lbl">🏡 农场名</span><span class="td-val">${meta.farm_name||'—'} 农场</span></div>
+        <div class="td-row"><span class="td-lbl">🗓️ 游戏日期</span><span class="td-val">${meta.current_date||'—'}</span></div>
+        <div class="td-row"><span class="td-lbl">📆 游戏天数</span><span class="td-val">${(meta.days_played||0).toLocaleString()} 天</span></div>
+        <div class="td-row"><span class="td-lbl">⛰️ 矿洞最深层</span>
+          <span class="td-val ${(meta.deepest_mine||0)>=120?'ok':''}">${meta.deepest_mine||0} 层</span></div>
+        <div class="td-row"><span class="td-lbl">👣 步数</span><span class="td-val">${(meta.steps_taken||0).toLocaleString()}</span></div>
+        <div class="td-row"><span class="td-lbl">😵 晕倒次数</span>
+          <span class="td-val ${(meta.times_unconscious||0)>0?'warn':''}">${meta.times_unconscious||0} 次</span></div>
+        <div class="td-row"><span class="td-lbl">📋 完成委托</span><span class="td-val">${meta.quests_completed||0} 个</span></div>
+      </div>`;
+
+    // ②财务
+    dataSecs += `
+      <div class="td-sec">
+        <div class="td-sec-title">💰 财务状况</div>
+        <div class="td-row"><span class="td-lbl">💰 当前金币</span>
+          <span class="td-val ok">${(meta.money||0).toLocaleString()} G</span></div>
+        <div class="td-row"><span class="td-lbl">📈 历史总收入</span>
+          <span class="td-val">${(meta.total_earned||0).toLocaleString()} G</span></div>
+        <div class="td-row"><span class="td-lbl">🏅 基础分(总收入÷1.5 + 现金)</span>
+          <span class="td-val" style="color:var(--gold);">${(meta.base_score||0).toLocaleString()}</span></div>
+      </div>`;
+
+    // ③技能等级
+    const skillDefs = [
+      {id:'farming', label:'耕作', icon:'🌱'},
+      {id:'fishing',  label:'钓鱼', icon:'🎣'},
+      {id:'foraging', label:'采集', icon:'🍄'},
+      {id:'mining',   label:'采矿', icon:'⛏'},
+      {id:'combat',   label:'战斗', icon:'⚔️'},
+    ];
+    dataSecs += `
+      <div class="td-sec">
+        <div class="td-sec-title">⭐ 技能等级</div>
+        ${skillDefs.map(sd2 => {
+          const lv = (sk[sd2.id])||0;
+          return `<div class="td-row">
+            <span class="td-lbl">${sd2.icon} ${sd2.label}</span>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div>${skillBar(lv)}</div>
+              <span class="td-val ${lv>=10?'ok':''}" style="min-width:32px;">Lv.${lv}</span>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>`;
+
+    // ④生产 & 出货
+    const shTotal = meta.items_shipped_total||0;
+    dataSecs += `
+      <div class="td-sec">
+        <div class="td-sec-title">📦 生产 & 出货</div>
+        <div class="td-row"><span class="td-lbl">📦 出货总量</span>
+          <span class="td-val">${shTotal.toLocaleString()} 件</span></div>
+        ${shTotal>0?`
+        <div class="td-row"><span class="td-lbl" style="padding-left:14px;">🌽 作物</span>
+          <span class="td-val">${(meta.shipped_crops||0).toLocaleString()}</span></div>
+        <div class="td-row"><span class="td-lbl" style="padding-left:14px;">🐟 鱼</span>
+          <span class="td-val">${(meta.shipped_fish||0).toLocaleString()}</span></div>
+        <div class="td-row"><span class="td-lbl" style="padding-left:14px;">🏺 手工品</span>
+          <span class="td-val">${(meta.shipped_artisan||0).toLocaleString()}</span></div>
+        <div class="td-row"><span class="td-lbl" style="padding-left:14px;">🥚 动物产品</span>
+          <span class="td-val">${(meta.shipped_animal||0).toLocaleString()}</span></div>
+        <div class="td-row"><span class="td-lbl" style="padding-left:14px;">🌿 其他</span>
+          <span class="td-val">${(meta.shipped_other||0).toLocaleString()}</span></div>`:''}
+        <div class="td-row"><span class="td-lbl">⭐ 金星作物</span>
+          <span class="td-val ok">${(meta.star_crops||0).toLocaleString()}</span></div>
+        <div class="td-row"><span class="td-lbl">🌱 播种次数</span>
+          <span class="td-val">${(meta.seeds_sown||0).toLocaleString()}</span></div>
+        <div class="td-row"><span class="td-lbl">🎣 钓到的鱼</span>
+          <span class="td-val">${(meta.fish_caught||0).toLocaleString()}</span></div>
+        <div class="td-row"><span class="td-lbl">🍯 腌制 / 🍷 酿造</span>
+          <span class="td-val">${(meta.preserves_made||0).toLocaleString()} / ${(meta.beverages_made||0).toLocaleString()}</span></div>
+        <div class="td-row"><span class="td-lbl">🍳 烹饪</span>
+          <span class="td-val">${(meta.items_cooked||0).toLocaleString()} 道</span></div>
+        <div class="td-row"><span class="td-lbl">🔨 工艺制作</span>
+          <span class="td-val">${(meta.items_crafted||0).toLocaleString()} 件</span></div>
+        <div class="td-row"><span class="td-lbl">🪨 宝石匣</span>
+          <span class="td-val">${(meta.geodes_cracked||0).toLocaleString()} 个</span></div>
+      </div>`;
+
+    // ⑤采矿 & 战斗
+    dataSecs += `
+      <div class="td-sec">
+        <div class="td-sec-title">⛏ 采矿 & 战斗</div>
+        <div class="td-row"><span class="td-lbl">⛏ 开采岩石</span>
+          <span class="td-val">${(meta.rocks_processed||0).toLocaleString()}</span></div>
+        <div class="td-row"><span class="td-lbl">🟤 铜矿</span>
+          <span class="td-val">${(meta.copper_found||0).toLocaleString()}</span></div>
+        <div class="td-row"><span class="td-lbl">🩶 铁矿</span>
+          <span class="td-val">${(meta.iron_found||0).toLocaleString()}</span></div>
+        <div class="td-row"><span class="td-lbl">🟡 金矿</span>
+          <span class="td-val ok">${(meta.gold_found||0).toLocaleString()}</span></div>
+        <div class="td-row"><span class="td-lbl">🔮 铱矿</span>
+          <span class="td-val ${(meta.iridium_found||0)>0?'ok':''}">${(meta.iridium_found||0).toLocaleString()}</span></div>
+        <div class="td-row"><span class="td-lbl">💎 钻石</span>
+          <span class="td-val ${(meta.diamonds_found||0)>0?'ok':''}">${(meta.diamonds_found||0).toLocaleString()}</span></div>
+        <div class="td-row"><span class="td-lbl">⚔️ 击杀怪物</span>
+          <span class="td-val">${(meta.monsters_killed||0).toLocaleString()}</span></div>
+        <div class="td-row"><span class="td-lbl">🌿 清除杂草</span>
+          <span class="td-val">${(meta.weeds_eliminated||0).toLocaleString()}</span></div>
+      </div>`;
+
+    // ⑥社交
+    const top5html = meta.friendship_top5 && Object.keys(meta.friendship_top5||{}).length
+      ? Object.entries(meta.friendship_top5).map(([npc,pts]) => `
+          <div class="td-row">
+            <span class="td-lbl" style="padding-left:14px;">🤝 ${npc}</span>
+            <span class="td-val ok">${(pts||0).toLocaleString()} 点  ${Math.floor((pts||0)/250)}❤️</span>
+          </div>`).join('') : '';
+    dataSecs += `
+      <div class="td-sec">
+        <div class="td-sec-title">🤝 社交关系</div>
+        <div class="td-row"><span class="td-lbl">👥 交友村民数</span>
+          <span class="td-val">${meta.friendship_count||0} 人</span></div>
+        <div class="td-row"><span class="td-lbl">💖 友谊总分</span>
+          <span class="td-val">${(meta.friendship_total||0).toLocaleString()} 点</span></div>
+        <div class="td-row"><span class="td-lbl">❤️ 8心以上好友</span>
+          <span class="td-val ok">${meta.good_friends||0} 人</span></div>
+        <div class="td-row"><span class="td-lbl">🎁 赠送礼物</span>
+          <span class="td-val">${(meta.gifts_given||0).toLocaleString()} 次</span></div>
+        ${top5html}
+      </div>`;
+
+  } else {
+    dataSecs = `
+      <div class="td-sec">
+        <div class="td-sec-title">🌾 存档数据</div>
+        <div class="td-row">
+          <span class="td-lbl" style="color:var(--ink-faint);">⏳ 等待参赛者运行检测工具上报数据</span>
+        </div>
+      </div>`;
+  }
+
+  // ── 处罚
+  const penSec = `
+    <div class="td-sec">
+      <div class="td-sec-title">🃏 处罚状态</div>
+      <div class="td-row">
+        <span class="td-lbl">🟡 黄牌</span>
+        <span class="td-val ${pen.yellow>0?'warn':''}">${pen.yellow||0} 张${pen.yellow>=2?' ⚠️':''}</span>
+      </div>
+      <div class="td-row">
+        <span class="td-lbl">🔴 红牌</span>
+        <span class="td-val ${pen.red?'bad':''}">${pen.red?'已出示':'无'}</span>
+      </div>
+      ${pen.log&&pen.log.length?`
+      <div class="td-row">
+        <span class="td-lbl">📋 最近记录</span>
+        <span class="td-val" style="font-size:.78rem;color:var(--ink-faint);text-align:right;max-width:55%;">
+          ${pen.log[pen.log.length-1]?.desc||''}
+        </span>
+      </div>`:''}
+    </div>`;
+
+  // ── 回档
+  const rbTotal = SEASONS.reduce((a,ss) => a+(rb[ss.id]||0), 0);
+  const rbSec = `
+    <div class="td-sec">
+      <div class="td-sec-title">🔄 回档记录</div>
+      ${SEASONS.map(ss=>`
+        <div class="td-row">
+          <span class="td-lbl">${SEAS_ICONS[ss.id]||''} ${ss.label}季</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            ${[0,1].map(i=>`<span style="display:inline-block;width:12px;height:12px;border:2px solid;
+              border-color:${(rb[ss.id]||0)>i?'var(--red-lt)':'var(--border)'};
+              background:${(rb[ss.id]||0)>i?'oklch(0.45 0.20 25)':'var(--bg2)'}"></span>`).join('')}
+            <span class="td-val ${(rb[ss.id]||0)>=2?'warn':''}">${rb[ss.id]||0}/2</span>
+          </div>
+        </div>`).join('')}
+      <div class="td-row" style="background:var(--bg2);">
+        <span class="td-lbl" style="font-weight:600;color:var(--ink);">合计</span>
+        <span class="td-val ${rbTotal>=7?'bad':rbTotal>=5?'warn':''}">${rbTotal}/8 次</span>
+      </div>
+    </div>`;
+
+  return `
+    <div class="td-hdr">
+      <button class="td-close" onclick="closeTeamDetail()">✕</button>
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;flex-wrap:wrap;">
+        ${rankStr?`<span style="font-family:var(--fp);font-size:1.0rem;color:var(--gold);">${rankStr}</span>`:''}
+        <div>
+          <div style="font-family:var(--fb);font-size:1.0rem;font-weight:700;color:var(--green-lt);">
+            队伍 ${tid}
+            ${!isRanked?'<span class="badge badge-p" style="font-size:.70rem;margin-left:6px;">参与奖</span>':''}
+          </div>
+          <div style="font-size:.85rem;color:var(--ink-muted);margin-top:4px;">
+            ${ti(tid).leader ? '👑 ' + ti(tid).leader + ' · ' : ''}${ti(tid).members.join(' · ') || '<span style="color:var(--ink-faint)">未注册成员</span>'}
+            ${ti(tid).referee ? `<span style="font-size:.78rem;color:var(--ink-faint);margin-left:6px;">裁判：${ti(tid).referee}</span>` : ''}
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <span style="font-family:var(--fp);font-size:.80rem;color:var(--gold);" title="${fs.toLocaleString()} 分">🏆 ${fmtScore(fs)} 分</span>
+        ${rs!==fs?`<span style="font-size:.80rem;color:var(--ink-muted);" title="${rs.toLocaleString()}">原始 ${fmtScore(rs)}</span>`:''}
+        ${pen.yellow?`<span class="badge badge-y">黄牌×${pen.yellow}</span>`:''}
+        ${pen.red?`<span class="badge badge-r">红牌</span>`:''}
+      </div>
+    </div>
+    <div class="td-body">
+      <div class="td-sec">
+        <div class="td-sec-title">📊 积分明细</div>
+        ${scoreRows}
+        <div class="td-row" style="background:oklch(0.16 0.02 80);">
+          <span class="td-lbl" style="font-weight:600;color:var(--ink);">🏆 最终得分</span>
+          <span class="td-val" style="font-family:var(--fp);font-size:.82rem;color:var(--gold);" title="${fs.toLocaleString()}">${fmtScore(fs)}</span>
+        </div>
+      </div>
+      ${adminSec}
+      ${dataSecs}
+      ${penSec}
+      ${rbSec}
+    </div>`;
+}
+
+function renderArchive() {
+  const grid = document.getElementById('archiveGrid');
+  if (!grid) return;
+
+  // 旧的「管理员模式」状态栏已废,改由顶部账号徽章区分
+
+  let html = '';
+  ALL_TEAMS.forEach(t => {
+    const s     = state.scores[t.id]    || {};
+    const pen   = state.penalties[t.id]  || { yellow:0, red:false };
+    const rb    = state.rollbacks[t.id]  || {};
+    const meta  = (state.syncMeta || {})[t.id];
+    const fs    = finalScore(t.id);
+    const rbTot = SEASONS.reduce((a,ss) => a+(rb[ss.id]||0), 0);
+    const isP   = !RANKED.find(x => x.id === t.id);
+    const cls   = pen.red ? 'pp-red' : 'pp';
+
+    html += `
+      <div class="${cls}" style="padding:16px 18px;margin-bottom:10px;cursor:pointer;"
+           onclick="openTeamDetail('${t.id}')">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px;">
+          <div>
+            <div style="font-family:var(--fb);font-size:.95rem;font-weight:700;color:var(--green-lt);margin-bottom:4px;">
+              队伍 ${t.id}
+              ${isP?'<span class="badge badge-p">参与奖</span>':''}
+              ${pen.red?'<span class="badge badge-r">红牌</span>':''}
+              ${pen.yellow?`<span class="badge badge-y">黄牌×${pen.yellow}</span>`:''}
+            </div>
+            <div style="font-size:.82rem;color:var(--ink-muted);">
+              ${ti(t.id).leader ? '👑 ' + ti(t.id).leader + ' · ' : ''}${ti(t.id).members.join(' · ') || '未注册'}
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-family:var(--fp);font-size:.85rem;color:var(--gold);">${fs.toLocaleString()}</div>
+            <div style="font-size:.73rem;color:var(--ink-faint);">最终得分</div>
+          </div>
+        </div>
+        <div class="arc-scores">
+          ${CATS.map(c=>`
+            <div style="padding:7px 10px;background:var(--bg2);border:1px solid var(--border);">
+              <div style="font-size:.72rem;color:var(--ink-muted);">${CAT_ICONS[c.id]||''} ${c.label}</div>
+              <div style="font-family:var(--fp);font-size:.68rem;color:var(--gold);margin-top:3px;">
+                ${(s[c.id]||0).toLocaleString()}
+              </div>
+            </div>`).join('')}
+        </div>
+        ${meta ? (() => {
+          const sk = meta.skills||{};
+          const skillStr = [
+            {k:'farming',icon:'🌱'},{k:'fishing',icon:'🎣'},
+            {k:'foraging',icon:'🍄'},{k:'mining',icon:'⛏'},{k:'combat',icon:'⚔️'},
+          ].map(d=>`${d.icon}<b style="color:var(--gold)">${sk[d.k]||0}</b>`).join(' ');
+          return `<div style="display:flex;flex-wrap:wrap;gap:10px;padding:7px 10px;
+               background:var(--bg2);border:1px solid var(--border);font-size:.80rem;margin-bottom:8px;">
+            <span style="color:var(--green-lt);">🗓️ ${meta.current_date||'—'}</span>
+            <span style="color:var(--gold);">💰 ${(meta.money||0).toLocaleString()} G</span>
+            <span style="color:var(--ink-muted);">📈 ${(meta.total_earned||0).toLocaleString()} G</span>
+            <span style="color:var(--ink-muted);">🤝 ${(meta.friendship_total||0).toLocaleString()}</span>
+            ${meta.deepest_mine?`<span style="color:var(--ink-faint);">⛰️ ${meta.deepest_mine}层</span>`:''}
+          </div>
+          <div style="display:flex;flex-wrap:wrap;align-items:center;gap:14px;padding:5px 10px;
+               background:var(--bg2);border:1px solid var(--border);border-top:none;font-size:.78rem;margin-bottom:8px;">
+            <span style="color:var(--ink-muted);">⭐ ${skillStr}</span>
+            ${meta.items_shipped_total?`<span style="color:var(--ink-muted);">📦 出货 ${(meta.items_shipped_total||0).toLocaleString()}</span>`:''}
+            ${meta.monsters_killed?`<span style="color:var(--ink-muted);">⚔️ 击杀 ${(meta.monsters_killed||0).toLocaleString()}</span>`:''}
+            ${meta.fish_caught?`<span style="color:var(--ink-muted);">🎣 钓鱼 ${(meta.fish_caught||0).toLocaleString()}</span>`:''}
+          </div>`;
+        })() : `
+          <div style="padding:6px 10px;background:var(--bg2);border:1px solid var(--border);
+               font-size:.80rem;color:var(--ink-faint);margin-bottom:8px;">
+            ⏳ 等待检测工具上报数据
+          </div>`}
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+          <span style="font-size:.78rem;color:${rbTot>=7?'var(--red-lt)':rbTot>=5?'var(--yellow)':'var(--ink-faint)'};">
+            🔄 回档 ${rbTot}/8  ${SEASONS.map(ss=>`${ss.label.charAt(0)}${rb[ss.id]||0}`).join(' ')}
+          </span>
+          <span style="font-size:.74rem;color:var(--ink-faint);">📋 点击查看详情 →</span>
+        </div>
+      </div>`;
+  });
+
+  grid.innerHTML = html;
+}
+
+/* ═══════════════════════════════════════════════
+   SERVER SYNC
+═══════════════════════════════════════════════ */
+
+function getServerUrl() {
+  // 优先读防作弊页的输入框，其次计分管理输入框，最后 localStorage
+  const ac  = document.getElementById('acSrvUrl');
+  const sc  = document.getElementById('srvUrl');
+  const val = (ac && ac.value.trim()) || (sc && sc.value.trim())
+              || localStorage.getItem('sv_server') || 'http://localhost:3722';
+  return val.trim().replace(/\/+$/, '');
+}
+
+function setSyncStatus(msg, color='var(--ink-muted)') {
+  const el = document.getElementById('syncStatus');
+  if (!el) return;
+  el.style.display = 'block';
+  el.style.color   = color;
+  el.textContent   = msg;
+}
+
+async function checkServerStatus() {
+  setSyncStatus('连接中…');
+  try {
+    const r = await fetch(`${getServerUrl()}/`, { signal: AbortSignal.timeout(5000) });
+    if (r.ok) {
+      setSyncStatus('✅ 服务器连接正常', 'var(--green-lt)');
+    } else {
+      setSyncStatus(`❌ 服务器响应异常 (${r.status})`, 'var(--red-lt)');
+    }
+  } catch {
+    setSyncStatus('❌ 无法连接服务器，请检查地址或确认服务器已启动', 'var(--red-lt)');
+  }
+}
+
+/**
+ * 在已注册队伍中按玩家ID查找所属队伍。
+ * 检查裁判/队长/队员，以及联机存档中的 farmhand_names。
+ * 比较时忽略大小写与首尾空格。
+ * @param {string[]} names 要查找的玩家名列表（主玩家 + 农场手）
+ * @returns {string|null} 队伍 ID，未找到返回 null
+ */
+function findTeamByPlayers(names) {
+  if (!names || !names.length || !state.teamInfo) return null;
+  const norm = s => (s || '').trim().toLowerCase();
+  const needles = names.map(norm).filter(Boolean);
+  if (!needles.length) return null;
+
+  for (const [tid, info] of Object.entries(state.teamInfo)) {
+    const haystack = [
+      info.leader,
+      info.referee,
+      ...(info.members || []),
+    ].map(norm).filter(Boolean);
+
+    if (needles.some(n => haystack.includes(n))) return tid;
+  }
+  return null;
+}
+
+async function syncFromServer() {
+  setSyncStatus('同步中…');
+  try {
+    const r = await fetch(`${getServerUrl()}/scores`, { signal: AbortSignal.timeout(8000) });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const data = await r.json();
+
+    if (!state.syncMeta) state.syncMeta = {};
+    let synced = 0;
+    const unknown = [];   // 未匹配到队伍的玩家名
+    const matched = {};   // tid -> player（用于去重，同一队伍只取最新）
+
+    for (const [keyTid, info] of Object.entries(data)) {
+      const sd = info.save_data || {};
+      const player = info.player || '';
+
+      // 构造本次上报涉及的所有玩家名(账号显示名 / 游戏 ID / 联机农场手)
+      const allNames = [
+        player,                          // checker 现在发的是账号显示名
+        sd.ingame_name,                  // 存档里的英文游戏 ID(老版本回退)
+        ...(sd.farmhand_names || []),
+      ].filter(Boolean);
+
+      // 优先级 1: 按队伍信息中注册的名字查找
+      let tid = findTeamByPlayers(allNames);
+
+      // 优先级 2: 回退到响应 key 的 tid
+      // 后端已用账号 token 校验 tid,所以这是可信的
+      if (!tid && keyTid) tid = keyTid;
+
+      if (!tid) {
+        unknown.push(player || '（未知）');
+        continue;
+      }
+
+      // 同一队伍收到多条上报时取时间戳最新的
+      const prev = matched[tid];
+      if (prev && prev.timestamp >= info.timestamp) continue;
+      matched[tid] = info;
+    }
+
+    // 将匹配成功的数据写入 state
+    for (const [tid, info] of Object.entries(matched)) {
+      const sd = info.save_data || {};
+      if (!state.scores[tid]) state.scores[tid] = {};
+
+      // ① 基础分(总收入÷1.5 + 现金,完全自动)
+      if (sd.base_score !== undefined) {
+        state.scores[tid].base = sd.base_score;
+        synced++;
+      }
+
+      // ② 村庄建设（完全由存档决定，直接覆盖）
+      if (sd.community_score !== undefined) {
+        state.scores[tid].community = sd.community_score;
+      }
+
+      // ③ 好感度奖励（8心+2w/人 + 结婚5w，由存档决定，直接覆盖）
+      if (sd.friend_score !== undefined) {
+        state.scores[tid].friendship = sd.friend_score;
+      }
+
+      // ④ 技能奖励(5技能全10级×5w/人,完全自动)
+      if (sd.skill_score !== undefined) {
+        state.scores[tid].skillBonus = sd.skill_score;
+      }
+
+      // ⑤ 特殊事件：取 auto 与现有手动值的最大值
+      if (sd.auto_special_score !== undefined) {
+        const existing = state.scores[tid].special || 0;
+        state.scores[tid].special = Math.max(existing, sd.auto_special_score);
+      }
+
+      // 将 save_data 全量存入 syncMeta，便于详情面板展示
+      state.syncMeta[tid] = Object.assign(
+        { player: info.player, timestamp: info.timestamp },
+        sd
+      );
+    }
+
+    save();
+    renderLB();
+    renderArchive();
+
+    const t = new Date().toLocaleTimeString('zh-CN');
+    if (unknown.length) {
+      const names = unknown.join('、');
+      setSyncStatus(`⚠️ ${synced} 队已同步，${unknown.length} 条未匹配队伍（${t}）`, 'var(--yellow)');
+      toast(`以下玩家ID未在任何已注册队伍中找到，请先完成队伍注册：${names}`, 'warn');
+    } else {
+      setSyncStatus(`✅ 已同步 ${synced} 支队伍的存档数据（${t}）`, 'var(--green-lt)');
+      toast(`同步完成，${synced} 队村庄建设分已自动计算`, 'ok');
+    }
+  } catch(e) {
+    setSyncStatus(`❌ 同步失败：${e.message}`, 'var(--red-lt)');
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   TEAM REGISTRATION
+═══════════════════════════════════════════════ */
+
+/**
+ * 当前登录用户能否编辑指定队伍的数据
+ * admin: 所有队都能编辑;  referee: 只能编辑自己负责的队;  player/guest: 不能编辑
+ */
+function canEditTeam(tid) {
+  if (!currentUser) return false;
+  if (currentUser.role === 'admin') return true;
+  return currentUser.role === 'referee' && currentUser.tid === tid;
+}
+
+function submitTeamReg() {
+  // 自动用当前裁判的 tid + 显示名,无须用户选择
+  const tid     = currentUser && currentUser.tid;
+  const referee = currentUser && currentUser.name;
+  const leader  = document.getElementById('reg-leader').value.trim();
+  const raw     = document.getElementById('reg-members').value.trim();
+  const members = raw ? raw.split(/[,，\s]+/).map(s => s.trim()).filter(Boolean) : [];
+  const msg     = document.getElementById('reg-msg');
+
+  if (!tid || !canEditTeam(tid)) {
+    showMsg(msg, '当前账号无权编辑队伍信息', 'var(--red-lt)'); return;
+  }
+  if (!leader) {
+    showMsg(msg, '至少需要填写队长游戏ID', 'var(--red-lt)'); return;
+  }
+
+  if (!state.teamInfo) state.teamInfo = {};
+  state.teamInfo[tid] = { leader, members, referee };
+  save();
+  pushToBackend(tid, 'teaminfo');
+  renderReg();
+  renderLB();
+  renderArchive();
+
+  showMsg(msg, `✅ 队伍 ${tid} 信息已保存`, 'var(--green-lt)');
+}
+
+/* 生成选手注册码:调用后端 /admin/invite,把码显示在 UI 中并复制到剪贴板 */
+async function createInviteCode() {
+  if (!currentUser || !currentUser.token) {
+    toast('需要先登录', 'err'); return;
+  }
+  const tid = currentUser.tid;
+  if (!tid) { toast('当前账号没有绑定队伍', 'err'); return; }
+  try {
+    const r = await api('/admin/invite', { token: currentUser.token, tid });
+    await navigator.clipboard.writeText(r.code).catch(() => {});
+    toast(`已生成 ${tid} 队注册码:${r.code} (已复制到剪贴板)`, 'ok');
+    renderInvitesList();
+  } catch (e) {
+    toast(`生成失败:${e.message}`, 'err');
+  }
+}
+
+/* 列出本裁判已发出的注册码 + 使用状态 */
+async function renderInvitesList() {
+  const slot = document.getElementById('reg-invites-list');
+  if (!slot || !currentUser?.token) return;
+  try {
+    const data = await api(`/admin/invites?token=${encodeURIComponent(currentUser.token)}`);
+    const arr = Object.entries(data).map(([code, v]) => ({ code, ...v }));
+    if (!arr.length) { slot.innerHTML = '<i style="color:var(--ink-faint);">尚未生成任何注册码。点上方按钮生成一个,然后私发给选手。</i>'; return; }
+    slot.innerHTML = '<div style="font-weight:700;color:var(--gold);margin-bottom:6px;">已发出的注册码</div>' +
+      arr.map(x => `
+        <div style="display:flex;align-items:center;gap:10px;padding:4px 0;border-bottom:1px dashed var(--surface2);">
+          <code style="color:var(--gold);font-family:var(--fp);font-size:.78rem;flex:0 0 auto;">${x.code}</code>
+          <span style="color:${x.used_by ? 'var(--green-lt)' : 'var(--ink-faint)'};font-size:.78rem;">
+            ${x.used_by ? `✓ 已被 <b>${x.used_by}</b> 注册 (${x.used_at})` : '未使用'}
+          </span>
+          ${!x.used_by ? `<button class="btn btn-sm" style="font-size:.7rem;padding:1px 7px;margin-left:auto;background:var(--surface2);"
+              onclick="navigator.clipboard.writeText('${x.code}').then(()=>toast('已复制','ok'))">复制</button>` : ''}
+        </div>`).join('');
+  } catch (e) {
+    slot.innerHTML = `<i style="color:var(--red-lt);">注册码列表加载失败:${e.message}</i>`;
+  }
+}
+
+function showMsg(el, text, color) {
+  el.textContent = text;
+  el.style.color = color;
+  el.style.display = 'inline';
+  setTimeout(() => { el.style.display = 'none'; }, 3000);
+}
+
+function renderReg() {
+  // 顶部范围提示
+  const scopeEl = document.getElementById('reg-scope-info');
+  if (scopeEl && currentUser) {
+    if (currentUser.role === 'admin') {
+      scopeEl.innerHTML = `<b>总管理员模式</b> &nbsp;|&nbsp; 可编辑任意队伍的信息（编辑按钮在右侧队伍卡片上）`;
+    } else if (currentUser.role === 'referee') {
+      scopeEl.innerHTML = `你是 <b style="color:var(--gold-pale);">${currentUser.tid} 队</b> 的裁判 &nbsp;|&nbsp; 只能编辑本队信息,其他队信息仅查看`;
+    }
+  }
+  // 预填 tid + 裁判名(隐藏字段,供 submit 用)
+  if (currentUser && currentUser.tid) {
+    document.getElementById('reg-tid').value = currentUser.tid;
+  }
+  if (currentUser && currentUser.name) {
+    document.getElementById('reg-referee').value = currentUser.name;
+  }
+  // 用本队已有数据回填可见输入框
+  const myInfo = currentUser && currentUser.tid && (state.teamInfo || {})[currentUser.tid];
+  if (myInfo) {
+    const lead = document.getElementById('reg-leader');
+    const memb = document.getElementById('reg-members');
+    if (lead && !lead.value) lead.value = myInfo.leader  || '';
+    if (memb && !memb.value) memb.value = (myInfo.members || []).join(', ');
+  }
+
+  // 刷新注册码列表
+  renderInvitesList();
+
+  const grid = document.getElementById('regGrid');
+  if (!grid) return;
+  const info = state.teamInfo || {};
+  grid.innerHTML = ALL_TEAMS.map(t => {
+    const d        = info[t.id];
+    const isP      = !!PART.find(p => p.id === t.id);
+    const editable = canEditTeam(t.id);
+    const ringCls  = editable ? 'pp-gold' : 'pp';
+    if (!d) return `
+      <div class="${editable ? 'pp-gold' : 'pp'}" style="padding:14px 16px;opacity:${editable?1:.55};">
+        <div style="font-family:var(--fb);font-size:.88rem;color:var(--ink-muted);">
+          队伍 ${t.id} ${isP?'<span class="badge badge-p" style="font-size:.65rem;">参与奖</span>':''}
+          ${editable?'<span class="badge badge-y" style="font-size:.62rem;margin-left:4px;">本队</span>':''}
+        </div>
+        <div style="font-size:.80rem;color:var(--ink-faint);margin-top:6px;">${editable ? '未注册 — 在上方表单填写后提交' : '未注册'}</div>
+      </div>`;
+    return `
+      <div class="${ringCls}" style="padding:14px 16px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;">
+          <div style="font-family:var(--fb);font-size:.92rem;color:var(--green-lt);">
+            队伍 ${t.id}
+            ${isP?'<span class="badge badge-p" style="font-size:.65rem;">参与奖</span>':''}
+            ${editable?'<span class="badge badge-y" style="font-size:.62rem;margin-left:4px;">本队</span>':''}
+          </div>
+          ${editable?`<button class="btn btn-sm" style="font-size:.70rem;padding:2px 8px;background:var(--surface2);"
+            onclick="editTeamReg('${t.id}')">✏️ 编辑</button>`:''}
+        </div>
+        ${d.referee?`<div style="font-size:.80rem;color:var(--ink-faint);margin-bottom:4px;">⚖️ 裁判：${d.referee}</div>`:''}
+        ${d.leader ?`<div style="font-size:.85rem;color:var(--ink);">👑 ${d.leader}</div>`:''}
+        ${d.members&&d.members.length?`<div style="font-size:.80rem;color:var(--ink-muted);margin-top:4px;">${d.members.join(' · ')}</div>`:''}
+      </div>`;
+  }).join('');
+}
+
+function editTeamReg(tid) {
+  if (!canEditTeam(tid)) {
+    toast(`你不是 ${tid} 队的裁判,无法编辑其信息`, 'err');
+    return;
+  }
+  const d = (state.teamInfo||{})[tid] || {};
+  document.getElementById('reg-leader').value  = d.leader  || '';
+  document.getElementById('reg-members').value = (d.members||[]).join(', ');
+  document.querySelector('[data-tab="reg"]').click();
+  document.getElementById('reg-leader').focus();
+}
+
+async function loadRemoteAC() {
+  const grid = document.getElementById('remoteACGrid');
+  grid.innerHTML = '<p style="font-size:.88rem;color:var(--ink-muted);text-align:center;padding:16px;">加载中…</p>';
+  try {
+    const r = await fetch(`${getServerUrl()}/anticheat`, { signal: AbortSignal.timeout(8000) });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const data = await r.json();
+
+    if (!Object.keys(data).length) {
+      grid.innerHTML = '<p style="font-size:.88rem;color:var(--ink-faint);text-align:center;padding:16px;">暂无远程上报记录</p>';
+      return;
+    }
+
+    grid.innerHTML = Object.entries(data).map(([tid, info]) => {
+      const ac           = info.anticheat || {};
+      const mods         = ac.mod_list   || [];
+      const fraud_flags  = info.fraud_flags || [];
+
+      // SMAPI 日志检测:看最近一次写入是否在 1 天内
+      // 三种情况:① 没日志 ② 日志存在但 checker 没传 mtime(老版) ③ 有完整时间
+      const logExists = ac.smapi_log_exists;
+      const logDays   = ac.smapi_log_days_ago;
+      let logOk, logLabel;
+      if (!logExists) {
+        logOk = true; logLabel = '无 SMAPI 历史日志';
+      } else if (logDays === undefined || logDays === null) {
+        // 老版 checker 数据,没传日期 → 不能判定
+        logOk = false;
+        logLabel = '有 SMAPI 日志(选手 checker 未升级,无法判断时间)';
+      } else if (logDays >= 1) {
+        logOk = true;
+        logLabel = `SMAPI 日志在 ${logDays} 天前(超过 1 天,无害)`;
+      } else {
+        logOk = false;
+        logLabel = `SMAPI 日志今天修改过(24 小时内,可疑)`;
+      }
+
+      // 自动检测项
+      const checks = [
+        { label:'未运行 SMAPI（Mod加载器）', ok: !ac.smapi_running },
+        { label:'无 Mod 文件夹',              ok: !ac.mods_found },
+        { label: logLabel,                    ok: logOk },
+        { label:'游戏运行中',                  ok: !!ac.game_running },
+      ];
+
+      // 防伪标志(后端服务器侧)
+      fraud_flags.forEach(f => checks.push({ label: `存档防伪:${f}`, ok: false }));
+
+      const allOk = checks.every(c => c.ok);
+      const panelCls = allOk ? 'pp' : 'pp-red';
+
+      const checksHtml = `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;margin:10px 0 4px;">
+          ${checks.map(c => `
+            <div style="display:flex;align-items:center;gap:6px;font-size:.82rem;">
+              <span style="font-size:1rem;">${c.ok ? '✅' : '❌'}</span>
+              <span style="color:${c.ok ? 'var(--ink)' : 'var(--red-lt)'};">${c.label}</span>
+            </div>`).join('')}
+        </div>`;
+
+      const modHtml = mods.length
+        ? `<div style="font-size:.76rem;color:var(--ink-faint);padding:4px 6px;background:var(--bg2);margin-top:6px;">
+             📦 Mod目录（${mods.length}个）：${mods.slice(0,8).join('、')}${mods.length>8?`…`:''}</div>`
+        : '';
+
+      return `<div class="remote-ac-item ${panelCls}">
+        <div class="remote-ac-head">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <span style="font-family:var(--fb);font-size:.92rem;font-weight:700;color:var(--green-lt);">队伍 ${tid}</span>
+            <span style="font-size:.83rem;color:var(--ink-muted);">上报：${info.player||'—'}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <span style="font-size:.75rem;color:var(--ink-faint);">${info.timestamp||''}</span>
+            <span class="badge ${allOk?'badge-p':'badge-r'}">${allOk?'✅ 通过':'❌ 异常'}</span>
+          </div>
+        </div>
+        ${checksHtml}
+        ${modHtml}
+      </div>`;
+    }).join('');
+  } catch(e) {
+    grid.innerHTML = `<p style="font-size:.88rem;color:var(--red-lt);padding:8px;">❌ 加载失败：${e.message}</p>`;
+  }
+}
+
+// ── 初始化时恢复服务器URL（两个输入框同步）────────────────────────────────────
+(function initServerUrl() {
+  const saved = localStorage.getItem('sv_server');
+  if (!saved) return;
+  ['srvUrl', 'acSrvUrl'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = saved;
+  });
+})();
+
+/* ═══════════════════════════════════════════════
+   PENALTIES
+═══════════════════════════════════════════════ */
+function renderPen() {
+  const grid = document.getElementById('penGrid');
+  let html = '';
+
+  ALL_TEAMS.forEach(t => {
+    const pen = state.penalties[t.id];
+    const isParticipation = PART.find(p => p.id === t.id);
+
+    // yellow dots (max shown: 3)
+    let yellowDots = '';
+    for (let i = 0; i < 3; i++) {
+      yellowDots += `<div class="cdot ${i < pen.yellow ? 'y-fill' : 'y-empty'}"></div>`;
+    }
+    let redDot = `<div class="cdot ${pen.red ? 'r-fill' : 'r-empty'}"></div>`;
+
+    html += `<div class="pen-card ${pen.red ? 'pp-red' : 'pp'}">
+      <div class="pen-head">
+        <div>
+          <span class="pen-tid">队伍 ${t.id}</span>
+          ${ti(t.id).leader ? `<span class="pen-leader"> · 👑 ${ti(t.id).leader}</span>` : ''}
+          ${isParticipation ? '<span class="badge badge-p" style="margin-left:6px">参与奖</span>' : ''}
+        </div>
+        <div class="card-track">
+          ${yellowDots} <span style="font-size:.9rem;color:var(--ink-faint);margin:0 4px">→</span> ${redDot}
+        </div>
+      </div>
+      <p style="font-size:.90rem;color:var(--ink-muted);margin-bottom:10px;">
+        黄牌：<b style="color:var(--yellow)">${pen.yellow}</b>/3 &nbsp;|&nbsp;
+        红牌：<b style="color:${pen.red?'var(--red-lt)':'var(--ink-muted)'}">${pen.red?'已触发':'无'}</b> &nbsp;|&nbsp;
+        最终分：<b style="color:var(--gold)">${finalScore(t.id).toLocaleString()}</b>
+      </p>
+      ${canEditTeam(t.id) ? `
+        <div class="pen-actions">
+          <button class="btn btn-gold btn-xs" onclick="issueCard('${t.id}',1,'yellow')">🟡 +1 黄牌</button>
+          <button class="btn btn-gold btn-xs" onclick="issueCard('${t.id}',2,'yellow')">🟡 +2 黄牌</button>
+          <button class="btn btn-red btn-xs"  onclick="issueCard('${t.id}',1,'red')">🔴 红牌</button>
+          <button class="btn btn-sm" style="background:var(--surface2);border:2px solid var(--border);color:var(--ink-muted)"
+            onclick="resetCards('${t.id}')">↩ 撤销处罚</button>
+        </div>
+      ` : (currentUser && currentUser.role === 'referee'
+          ? `<div style="font-size:.74rem;color:var(--ink-faint);margin-top:8px;font-style:italic;">仅可查看 · ${currentUser.tid} 队裁判无权操作 ${t.id} 队</div>`
+          : '')}
+    </div>`;
+  });
+
+  grid.innerHTML = html;
+  renderPenLog();
+}
+
+function issueCard(tid, count, type) {
+  if (!canEditTeam(tid)) { toast(`你无权操作 ${tid} 队`, 'err'); return; }
+  const teamName = `队伍 ${tid}`;
+  const pen = state.penalties[tid];
+
+  if (type === 'red') {
+    confirm2(
+      `⚠️ 确认发红牌`,
+      `即将对 ${teamName} 发红牌，总分将清零且无法补救。确定吗？`,
+      () => {
+        pen.red = true;
+        pen.yellow = Math.max(pen.yellow, 3);
+        logPenalty(tid, 'red', `红牌：总分清零`);
+        save(); pushToBackend(tid, 'penalties'); renderPen(); renderLB(); renderArchive();
+        toast(`${teamName} 已发红牌，总分清零`, 'err');
+      }
+    );
+  } else {
+    const msg = count === 2 ? '同时发 2 张黄牌' : '发 1 张黄牌';
+    confirm2(
+      `🟡 确认发黄牌`,
+      `即将对 ${teamName} ${msg}（扣除 ${count===2?'36%约':'20%'}总分）。确定吗？`,
+      () => {
+        pen.yellow += count;
+        let note = `黄牌+${count}：当前共 ${pen.yellow} 张`;
+        if (pen.yellow >= 3 && !pen.red) {
+          pen.red = true;
+          note += ' → 自动升级红牌！总分清零';
+          toast(`${teamName} 累计 3 张黄牌，自动升级为红牌！`, 'err');
+        }
+        logPenalty(tid, 'yellow', note);
+        save(); pushToBackend(tid, 'penalties'); renderPen(); renderLB(); renderArchive();
+        if (pen.yellow < 3 || pen.red) toast(`${teamName} 已记 ${pen.yellow} 张黄牌`, 'wrn');
+      }
+    );
+  }
+}
+
+function resetCards(tid) {
+  if (!canEditTeam(tid)) { toast(`你无权操作 ${tid} 队`, 'err'); return; }
+  confirm2(
+    '↩ 确认撤销处罚',
+    `撤销队伍 ${tid} 的全部处罚记录（黄牌清零，红牌解除）？此操作应在裁判授权后进行。`,
+    () => {
+      state.penalties[tid].yellow = 0;
+      state.penalties[tid].red = false;
+      logPenalty(tid, 'reset', `裁判撤销全部处罚`);
+      save(); pushToBackend(tid, 'penalties'); renderPen(); renderLB(); renderArchive();
+      toast(`队伍 ${tid} 处罚已撤销`, 'ok');
+    }
+  );
+}
+
+function logPenalty(tid, type, desc) {
+  const now = new Date();
+  const ts = now.toLocaleDateString('zh-CN') + ' ' + now.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
+  state.penalties[tid].log.unshift({ type, desc, ts, tid });
+}
+
+function renderPenLog() {
+  const el = document.getElementById('penLog');
+  // collect all logs across teams
+  const all = [];
+  ALL_TEAMS.forEach(t => {
+    (state.penalties[t.id].log || []).forEach(entry => all.push(entry));
+  });
+  all.sort((a,b) => b.ts.localeCompare(a.ts));
+
+  if (all.length === 0) {
+    el.innerHTML = '<div class="log-empty">暂无处罚记录</div>';
+    return;
+  }
+
+  el.innerHTML = all.slice(0,30).map(entry => {
+    const icon = entry.type==='red'?'🔴':entry.type==='reset'?'↩':'🟡';
+    return `<div class="log-item pp">
+      <span class="log-icon">${icon}</span>
+      <div class="log-body">
+        <div class="log-desc"><b>队伍 ${entry.tid}</b> — ${entry.desc}</div>
+        <div class="log-meta">${entry.ts}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════════
+   ANTI-CHEAT
+═══════════════════════════════════════════════ */
+document.getElementById('acDate').valueAsDate = new Date();
+
+function renderAC() {
+  const date = document.getElementById('acDate').value || new Date().toISOString().slice(0,10);
+  if (!state.anticheat[date]) state.anticheat[date] = {};
+
+  const el = document.getElementById('acGrid');
+  let html = '';
+
+  ALL_TEAMS.forEach(t => {
+    if (!state.anticheat[date][t.id]) state.anticheat[date][t.id] = Array(AC_ITEMS.length).fill(false);
+    const checks = state.anticheat[date][t.id];
+    const done = checks.filter(Boolean).length;
+    const total = AC_ITEMS.length;
+    const allDone = done === total;
+
+    html += `<div class="ac-card ${allDone ? 'pp-green' : 'pp'}">
+      <div class="ac-head">
+        <div>
+          <span style="font-family:var(--fb);font-size:.92rem;font-weight:700;color:var(--green-lt)">队伍 ${t.id}</span>
+          ${ti(t.id).leader ? `<span style="font-size:.88rem;color:var(--ink-muted);margin-left:8px">👑 ${ti(t.id).leader}</span>` : ''}
+        </div>
+        <span class="ac-progress ${allDone?'done':''}">${done}/${total} ${allDone?'✓':''}</span>
+      </div>
+      <p style="font-size:.85rem;color:var(--ink-faint);margin-bottom:8px;">${ti(t.id).members.join(' · ') || '未注册成员'}</p>
+      <div class="checklist">`;
+
+    const teamEditable = canEditTeam(t.id);
+    AC_ITEMS.forEach((item, i) => {
+      const checked = checks[i];
+      const clickHandler = teamEditable ? `onclick="toggleAC('${date}','${t.id}',${i})"` : '';
+      const readonlyCls  = teamEditable ? '' : ' cl-readonly';
+      html += `<div class="cl-item${readonlyCls} ${checked?'chk':''}" ${clickHandler}>
+        <div class="px-cb"></div>
+        <span class="cl-text">${item}</span>
+      </div>`;
+    });
+
+    html += `</div>
+      <textarea class="inp ac-note mt8" id="note_${t.id}_${date}" rows="2"
+        placeholder="${teamEditable ? '备注（异常情况记录）…' : '（仅本队裁判可编辑）'}"
+        ${teamEditable ? `onchange="saveACNote('${date}','${t.id}',this.value)"` : 'readonly'}
+        style="font-size:.88rem;resize:vertical;${teamEditable?'':'opacity:.7;background:oklch(0.16 0.025 35);'}">${(state.anticheat[date][t.id+'_note'])||''}</textarea>
+    </div>`;
+  });
+
+  el.innerHTML = html;
+}
+
+function toggleAC(date, tid, idx) {
+  if (!canEditTeam(tid)) { toast(`你无权操作 ${tid} 队的防作弊核查`, 'err'); return; }
+  if (!state.anticheat[date]) state.anticheat[date] = {};
+  if (!state.anticheat[date][tid]) state.anticheat[date][tid] = Array(AC_ITEMS.length).fill(false);
+  state.anticheat[date][tid][idx] = !state.anticheat[date][tid][idx];
+  save();
+  renderAC();
+}
+
+function saveACNote(date, tid, val) {
+  if (!canEditTeam(tid)) return;
+  if (!state.anticheat[date]) state.anticheat[date] = {};
+  state.anticheat[date][tid+'_note'] = val;
+  save();
+}
+
+/* ═══════════════════════════════════════════════
+   ROLLBACKS
+═══════════════════════════════════════════════ */
+function renderRB() {
+  const el = document.getElementById('rbGrid');
+  let html = '';
+
+  ALL_TEAMS.forEach(t => {
+    const rb = state.rollbacks[t.id];
+    const total = SEASONS.reduce((acc,s) => acc + rb[s.id], 0);
+    const overTotal = total > 8;
+
+    let seasonsHtml = '';
+    SEASONS.forEach(s => {
+      const used = rb[s.id];
+      const atLimit = used >= 2;
+      let dots = '';
+      for (let i = 0; i < 2; i++) {
+        dots += `<div class="rb-dot ${i < used ? (atLimit?'used':'warn') : ''}"></div>`;
+      }
+      seasonsHtml += `<div class="season ${s.cls}">
+        <span class="sn">${s.label}</span>
+        <div class="rb-dots">${dots}</div>
+        <div class="rb-count ${atLimit?'at-limit':used===1?'near-limit':''}">
+          <b>${used}</b>/2
+        </div>
+        ${canEditTeam(t.id) ? `
+          <div class="rb-btns">
+            <button class="btn btn-red btn-xs" onclick="addRB('${t.id}','${s.id}')" ${atLimit?'title="已达上限"':''}>+</button>
+            <button class="btn btn-sm btn-xs" onclick="subRB('${t.id}','${s.id}')"
+              style="background:var(--surface2);border:2px solid var(--border);color:var(--ink-muted)">-</button>
+          </div>` : ''}
+      </div>`;
+    });
+
+    html += `<div class="rb-card ${overTotal?'pp-red':'pp'}">
+      <div class="rb-head">
+        <div>
+          <span style="font-family:var(--fb);font-size:.92rem;font-weight:700;color:var(--green-lt)">队伍 ${t.id}</span>
+          ${ti(t.id).leader ? `<span style="font-size:.88rem;color:var(--ink-muted);margin-left:8px">👑 ${ti(t.id).leader}</span>` : ''}
+        </div>
+        ${overTotal ? '<span class="badge badge-r">⚠ 超限</span>' : ''}
+      </div>
+      <div class="seasons">${seasonsHtml}</div>
+      <div class="rb-total">
+        <span class="rb-total-label">全年已用 / 上限</span>
+        <span class="rb-total-val ${overTotal?'over':''}">${total} / 8 天</span>
+      </div>
+    </div>`;
+  });
+
+  el.innerHTML = html;
+}
+
+function addRB(tid, season) {
+  if (!canEditTeam(tid)) { toast(`你无权操作 ${tid} 队`, 'err'); return; }
+  const rb = state.rollbacks[tid];
+  if (rb[season] >= 2) {
+    toast(`队伍 ${tid} ${season} 季回档已达上限（2次）！`, 'err');
+    return;
+  }
+  rb[season]++;
+  const total = SEASONS.reduce((acc,s) => acc + rb[s.id], 0);
+  if (total > 8) toast(`⚠ 队伍 ${tid} 全年回档已超出 8 天上限！`, 'err');
+  else toast(`队伍 ${tid} 回档记录 +1`, 'wrn');
+  save(); pushToBackend(tid, 'rollbacks'); renderRB();
+}
+
+function subRB(tid, season) {
+  if (!canEditTeam(tid)) { toast(`你无权操作 ${tid} 队`, 'err'); return; }
+  const rb = state.rollbacks[tid];
+  if (rb[season] <= 0) return;
+  rb[season]--;
+  save(); pushToBackend(tid, 'rollbacks'); renderRB();
+}
+
+/* ═══════════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════════ */
+function toast(msg, type='ok') {
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.textContent = msg;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+/* ═══════════════════════════════════════════════
+   CONFIRM DIALOG
+═══════════════════════════════════════════════ */
+function confirm2(title, body, onOk) {
+  const dlg = document.getElementById('dlg');
+  document.getElementById('dlgTitle').textContent = title;
+  document.getElementById('dlgBody').textContent  = body;
+  document.getElementById('dlgActions').innerHTML = `
+    <button class="btn btn-red" id="dlgOk">确认</button>
+    <button class="btn btn-sm" id="dlgCancel"
+      style="background:var(--surface2);border:2px solid var(--border);color:var(--ink-muted)">取消</button>`;
+  dlg.showModal();
+  document.getElementById('dlgOk').onclick = () => { dlg.close(); onOk(); };
+  document.getElementById('dlgCancel').onclick = () => dlg.close();
+}
+
+/* ═══════════════════════════════════════════════
+   PUBLIC LEADERBOARD — 从后端拉取最新快照
+═══════════════════════════════════════════════ */
+let _lbRefreshTimer = null;
+
+async function fetchPublicState() {
+  // 用统一的 getServerUrl()——会按优先级用 injected URL > localStorage > localhost,
+  // 移动端 / 新浏览器没旧 localStorage 也能正常工作。
+  const url = getServerUrl();
+  if (!url) return;
+  try {
+    const r = await fetch(
+      `${url}/state`,
+      { signal: AbortSignal.timeout(6000) }
+    );
+    if (!r.ok) return;
+    const { state: remote, published_at } = await r.json();
+    if (!remote) return;
+
+    // 逐队伍逐字段合并，避免整体覆盖本地数据
+    if (remote.scores) {
+      for (const [tid, sc] of Object.entries(remote.scores)) {
+        if (!state.scores[tid]) state.scores[tid] = {};
+        Object.assign(state.scores[tid], sc);      // 字段级合并
+      }
+    }
+    if (remote.penalties) {
+      for (const [tid, pen] of Object.entries(remote.penalties)) {
+        if (!state.penalties[tid]) state.penalties[tid] = {};
+        Object.assign(state.penalties[tid], pen);
+      }
+    }
+    if (remote.rollbacks) {
+      for (const [tid, rb] of Object.entries(remote.rollbacks)) {
+        if (!state.rollbacks[tid]) state.rollbacks[tid] = {};
+        Object.assign(state.rollbacks[tid], rb);
+      }
+    }
+    if (remote.syncMeta) {
+      if (!state.syncMeta) state.syncMeta = {};
+      for (const [tid, meta] of Object.entries(remote.syncMeta)) {
+        state.syncMeta[tid] = meta;
+      }
+    }
+    if (remote.teamInfo) {
+      if (!state.teamInfo) state.teamInfo = {};
+      for (const [tid, info] of Object.entries(remote.teamInfo)) {
+        // 只合并，不覆盖本地已填写的信息
+        if (!state.teamInfo[tid] || !state.teamInfo[tid].leader) {
+          state.teamInfo[tid] = info;
+        }
+      }
+    }
+
+    renderLB();
+    renderReg();
+
+    // 更新 live bar
+    const bar = document.getElementById('liveBar');
+    bar.style.display = 'flex';
+    document.getElementById('liveStatus').textContent = '🔴 LIVE  实时排行榜';
+    document.getElementById('liveTime').textContent   = `最后更新：${published_at || '—'}`;
+  } catch { /* 拉取失败静默忽略，显示本地数据 */ }
+}
+
+function startLiveRefresh() {
+  fetchPublicState();
+  clearInterval(_lbRefreshTimer);
+  _lbRefreshTimer = setInterval(fetchPublicState, 30000);  // 每30秒刷新
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   AUTH / 角色路由
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+const AUTH_KEY   = 'svcomp_auth_v2';
+const SERVER_KEY = 'svcomp_server_v2';
+
+let currentUser = null;
+try {
+  currentUser = JSON.parse(localStorage.getItem(AUTH_KEY) || 'null');
+} catch { currentUser = null; }
+
+function saveAuth(u)  { currentUser = u; localStorage.setItem(AUTH_KEY, JSON.stringify(u)); }
+function clearAuth()  { currentUser = null; localStorage.removeItem(AUTH_KEY); }
+
+// 决定后端地址,优先级:
+//   1. 用户在 lsServer/serverUrl 输入框里手填的值
+//   2. start.py 注入的 window.SV_BACKEND_URL (来自 server_config.js)
+//   3. localStorage 里上次用的(可能已过期的 cpolar 地址)
+//   4. http://localhost:3722
+window.getServerUrl = function() {
+  const fromLs   = document.getElementById('lsServer')?.value?.trim();
+  const fromMain = document.getElementById('serverUrl')?.value?.trim();
+  const injected = (typeof window.SV_BACKEND_URL === 'string' && window.SV_BACKEND_URL) ? window.SV_BACKEND_URL : '';
+  const saved    = localStorage.getItem(SERVER_KEY);
+  const v = fromMain || fromLs || injected || saved || 'http://localhost:3722';
+  if (v && v !== saved) localStorage.setItem(SERVER_KEY, v);
+  return v.replace(/\/+$/, '');
+};
+
+// 启动时如果检测到 launcher 注入的后端地址 → 自动填入登录页输入框,免去手动操作
+(function syncInjectedServerUrl() {
+  if (typeof window.SV_BACKEND_URL !== 'string' || !window.SV_BACKEND_URL) return;
+  const fill = () => {
+    const el = document.getElementById('lsServer');
+    if (el && !el.value.trim()) el.value = window.SV_BACKEND_URL;
+    localStorage.setItem(SERVER_KEY, window.SV_BACKEND_URL);
+  };
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', fill, { once: true });
+  } else {
+    fill();
+  }
+})();
+
+async function api(path, body = null, method = null) {
+  const opts = { method: method || (body ? 'POST' : 'GET'),
+                 headers: { 'Content-Type': 'application/json' } };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(getServerUrl() + path, opts);
+  let data = {};
+  try { data = await r.json(); } catch {}
+  if (!r.ok) throw new Error(data.detail || `HTTP ${r.status}`);
+  return data;
+}
+
+/* ── 登录界面交互 ────────────────────────────────────────────────────── */
+
+function loginShowStep(step) {
+  document.querySelectorAll('#loginScreen .ls-step').forEach(el => {
+    el.classList.toggle('on', el.dataset.step === step);
+  });
+  document.querySelectorAll('#loginScreen .ls-err').forEach(el => el.classList.remove('show'));
+}
+
+document.querySelectorAll('#loginScreen .ls-role').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const role = btn.dataset.role;
+    if (role === 'guest') {
+      saveAuth({ role: 'guest', name: '游客' });
+      enterApp();
+      return;
+    }
+    // referee 或 player → 显示登录表单
+    document.getElementById('lsLoginTitle').textContent =
+      role === 'referee' ? '裁判登录' : '选手登录';
+    document.getElementById('lsSwitchToRegister').style.display =
+      role === 'player' ? 'block' : 'none';
+    // 焦点放到用户名
+    loginShowStep('login');
+    setTimeout(() => document.getElementById('lsUsername').focus(), 60);
+  });
+});
+
+async function loginSubmit() {
+  const username = document.getElementById('lsUsername').value.trim();
+  const password = document.getElementById('lsPassword').value;
+  const errEl    = document.getElementById('lsLoginErr');
+  errEl.classList.remove('show');
+  if (!username || !password) {
+    errEl.textContent = '请填写用户名和密码';
+    errEl.classList.add('show'); return;
+  }
+  try {
+    const u = await api('/auth/login', { username, password });
+    saveAuth(u);
+    enterApp();
+  } catch (e) {
+    errEl.textContent = e.message || '登录失败';
+    errEl.classList.add('show');
+  }
+}
+
+async function registerSubmit() {
+  const invite_code  = document.getElementById('lsRegCode').value.trim();
+  const username     = document.getElementById('lsRegUser').value.trim();
+  const display_name = document.getElementById('lsRegName').value.trim() || username;
+  const password     = document.getElementById('lsRegPwd').value;
+  const errEl        = document.getElementById('lsRegErr');
+  errEl.classList.remove('show');
+  if (!invite_code || !username || !password) {
+    errEl.textContent = '注册码、用户名、密码必填';
+    errEl.classList.add('show'); return;
+  }
+  if (password.length < 6) {
+    errEl.textContent = '密码至少 6 位';
+    errEl.classList.add('show'); return;
+  }
+  try {
+    const u = await api('/auth/register', { invite_code, username, password, display_name });
+    saveAuth(u);
+    enterApp();
+  } catch (e) {
+    errEl.textContent = e.message || '注册失败';
+    errEl.classList.add('show');
+  }
+}
+
+// 回车键提交
+['lsUsername','lsPassword'].forEach(id => {
+  document.getElementById(id)?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') loginSubmit();
+  });
+});
+['lsRegCode','lsRegUser','lsRegName','lsRegPwd'].forEach(id => {
+  document.getElementById(id)?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') registerSubmit();
+  });
+});
+
+// 服务器地址输入框同步到 localStorage
+document.getElementById('lsServer')?.addEventListener('change', e => {
+  if (e.target.value.trim()) localStorage.setItem(SERVER_KEY, e.target.value.trim());
+});
+// 初始化时回填
+{
+  const s = localStorage.getItem(SERVER_KEY);
+  if (s && document.getElementById('lsServer')) document.getElementById('lsServer').value = s;
+}
+
+/* ── 背景粒子(萤火虫 / 麦穗 / 星星) ──────────────────────────────────── */
+
+(function spawnLoginScene() {
+  const wheatField = document.getElementById('lsWheatField');
+  const fireflies  = document.getElementById('lsFireflies');
+  const stars      = document.getElementById('lsStars');
+  if (!wheatField) return;
+
+  // 90 根麦穗,沿底部草地随机分布,前景近大远小做出层次
+  for (let i = 0; i < 90; i++) {
+    const w = document.createElement('div');
+    w.className = 'ls-wheat';
+    const yPct = 1 + Math.random() * 27;          // 1-28% bottom
+    const isFront = yPct < 12;                     // 越靠下=越近=越大越亮
+    w.style.left          = (Math.random() * 100) + '%';
+    w.style.bottom        = yPct + '%';
+    w.style.animationDelay= (Math.random() * 3.2) + 's';
+    w.style.animationDuration = (2.6 + Math.random() * 1.4) + 's';
+    w.style.opacity       = isFront ? (0.78 + Math.random() * 0.22).toString()
+                                    : (0.45 + Math.random() * 0.35).toString();
+    w.style.transform     = `scale(${isFront ? 0.95 + Math.random()*0.4 : 0.55 + Math.random()*0.35})`;
+    w.style.zIndex        = isFront ? '3' : '2';
+    wheatField.appendChild(w);
+  }
+
+  // 18 只萤火虫,中下部漂浮
+  for (let i = 0; i < 18; i++) {
+    const f = document.createElement('div');
+    f.className = 'ls-firefly';
+    f.style.left          = (Math.random() * 100) + '%';
+    f.style.top           = (38 + Math.random() * 52) + '%';
+    f.style.animationDelay= (Math.random() * 12) + 's';
+    f.style.animationDuration = (8 + Math.random() * 8) + 's';
+    fireflies.appendChild(f);
+  }
+
+  // 烟囱烟雾 — 每个亮屋烟囱上方放一串徐徐升起的烟
+  // 不强求精确对齐(村庄 SVG 平铺,屏宽变烟囱位置就会变),
+  // 改为「3-4 簇集中位置 × 每簇 3-5 个时间错开的烟」,
+  // 视觉上看起来就是「几个炊烟柱」。
+  const smokeField = document.getElementById('lsSmoke');
+  if (smokeField) {
+    const stacks = 8;          // 横向 8 簇烟柱
+    const perStack = 4;        // 每簇 4 个烟雾粒子时间错开
+    for (let s = 0; s < stacks; s++) {
+      // 把烟柱大致分散在屏宽内,稍带抖动
+      const baseX = ((s + 0.5) / stacks) * 100 + (Math.random() * 6 - 3);
+      for (let i = 0; i < perStack; i++) {
+        const p = document.createElement('div');
+        p.className = 'ls-smoke';
+        p.style.left   = baseX + '%';
+        p.style.animationDelay    = (i * 1.8 + Math.random() * 1.5) + 's';
+        p.style.animationDuration = (6 + Math.random() * 3) + 's';
+        smokeField.appendChild(p);
+      }
+    }
+  }
+
+  // 50 颗星,只在上半部分
+  for (let i = 0; i < 50; i++) {
+    const s = document.createElement('div');
+    s.className = 'ls-star';
+    s.style.left          = (Math.random() * 100) + '%';
+    s.style.top           = (Math.random() * 88) + '%';
+    s.style.animationDelay= (Math.random() * 3.8) + 's';
+    s.style.opacity       = (0.4 + Math.random() * 0.6).toString();
+    if (Math.random() < 0.2) {  // 20% 的星更大些
+      s.style.width = '3px'; s.style.height = '3px';
+    }
+    stars.appendChild(s);
+  }
+})();
+
+/* ── 进入主应用 / 退出 ──────────────────────────────────────────────────── */
+
+function enterApp() {
+  const ls = document.getElementById('loginScreen');
+  ls.classList.add('hide');
+  setTimeout(() => { ls.style.display = 'none'; }, 480);
+
+  applyRoleVisibility(currentUser.role);
+  renderUserBadge(currentUser);
+
+  // 角色相关初始化
+  renderLB();
+  renderArchive();
+  if (currentUser.role !== 'guest') {
+    renderReg();
+    renderAC();
+    renderRB();
+  }
+  // 裁判: 启动自动同步存档 + 防作弊上报
+  if (currentUser.role === 'referee' || currentUser.role === 'admin') {
+    startAutoSyncForReferee();
+  }
+}
+
+let _autoSyncTimer = null;
+let _autoACTimer   = null;
+
+/* 裁判模式下的自动后台拉取:
+   - 每 60 秒从后端同步参赛者上报的存档数据(syncFromServer)
+   - 每 30 秒从后端拉一次防作弊上报(loadRemoteAC) */
+function startAutoSyncForReferee() {
+  clearInterval(_autoSyncTimer); clearInterval(_autoACTimer);
+  const doSync = () => {
+    if (typeof syncFromServer === 'function') syncFromServer().catch(()=>{});
+  };
+  const doAC = () => {
+    if (typeof loadRemoteAC === 'function')   loadRemoteAC().catch(()=>{});
+    const t = document.getElementById('remoteACTime');
+    if (t) t.textContent = new Date().toLocaleTimeString('zh-CN');
+  };
+  doSync(); doAC();   // 启动时立即来一次
+  _autoSyncTimer = setInterval(doSync, 60000);
+  _autoACTimer   = setInterval(doAC,   30000);
+}
+
+function logout() {
+  clearAuth();
+  location.reload();
+}
+
+function applyRoleVisibility(role) {
+  // 每个角色可见的 Tab
+  // - 游客: 只看排行榜+档案
+  // - 选手: 看排行榜+档案+处罚+作弊+回档(全部只读;队伍注册由裁判负责)
+  // - 裁判/admin: 全部 + 可写
+  const allowedByRole = {
+    guest:   new Set(['lb', 'sc']),
+    player:  new Set(['lb', 'sc', 'pen', 'ac', 'rb']),
+    referee: new Set(['lb', 'sc', 'reg', 'pen', 'ac', 'rb']),
+    admin:   new Set(['lb', 'sc', 'reg', 'pen', 'ac', 'rb']),
+  };
+  const allowed = allowedByRole[role] || allowedByRole.guest;
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.style.display = allowed.has(btn.dataset.tab) ? '' : 'none';
+  });
+
+  // body class 控制写权限元素可见性
+  document.body.classList.remove('role-guest','role-player','role-referee','role-admin','can-edit');
+  document.body.classList.add(`role-${role}`);
+  if (role === 'referee' || role === 'admin') {
+    document.body.classList.add('can-edit');
+    // 复用旧的 adminLoggedIn 开关:让所有 `${adminLoggedIn ? ... : ''}` 的内联编辑按钮直接亮起
+    adminLoggedIn = true;
+    // 处罚 Tab 的旧密码门解锁
+    const penLock = document.getElementById('penLock');
+    const penPanel = document.getElementById('penPanel');
+    if (penLock)  penLock.style.display  = 'none';
+    if (penPanel) penPanel.style.display = '';
+  } else {
+    adminLoggedIn = false;
+  }
+}
+
+function renderUserBadge(user) {
+  // 在 header 末尾插入(或更新)徽章
+  let badge = document.getElementById('userBadge');
+  if (!badge) {
+    badge = document.createElement('div');
+    badge.id = 'userBadge';
+    badge.className = 'user-badge';
+    const header = document.querySelector('#app header');
+    if (header) header.appendChild(badge);
+  }
+  const labels = { guest:'游客模式', player:'选手', referee:'裁判', admin:'管理员' };
+  const safeName = (user.name || '').replace(/[<>&]/g,'');
+  let mainText = '';
+  if (user.role === 'guest') {
+    mainText = ''; // 游客只显示角色标签即可
+  } else if (user.tid) {
+    mainText = `<span class="ub-name">${safeName}</span> <span style="color:var(--ink-muted);">·</span> <span style="color:var(--gold-pale);">${user.tid} 队</span>`;
+  } else {
+    mainText = `<span class="ub-name">${safeName}</span>`;
+  }
+  badge.innerHTML = `
+    <span class="ub-role">${labels[user.role] || user.role}</span>
+    ${mainText}
+    <button class="ub-logout" type="button" onclick="logout()">退出</button>
+  `;
+}
+
+// 校验 currentUser 的 token,失效则强制重登
+async function validateSession() {
+  if (!currentUser || !currentUser.token) return true;
+  try {
+    await api(`/auth/me?token=${encodeURIComponent(currentUser.token)}`);
+    return true;
+  } catch {
+    clearAuth();
+    return false;
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════ */
+document.getElementById('acDate').addEventListener('change', renderAC);
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeTeamDetail(); });
+
+// 启动路由:有 currentUser → 校验后入主页;无 → 留在登录页
+(async () => {
+  if (currentUser) {
+    if (currentUser.role === 'guest' || await validateSession()) {
+      enterApp();
+    } else {
+      // token 失效,留在登录页
+      loginShowStep('roles');
+    }
+  } else {
+    loginShowStep('roles');
+  }
+  startLiveRefresh();   // 公开排行榜的实时拉取,登录页也允许后台拉
+})();
+</script>
+<!-- ═══ 队伍详情覆盖层 ═══ -->
+<div id="tdOverlay" style="display:none;" onclick="if(event.target===this)closeTeamDetail()">
+  <div id="tdPanel"></div>
+</div>
+</body>
+</html>
