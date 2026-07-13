@@ -1768,7 +1768,7 @@ const PART   = ['I','J','K'].map(id => ({ id }));
 const ALL_TEAMS = [...RANKED, ...PART];
 
 const CATS = [
-  { id:'base',        label:'基础分数',  hint:'总收入÷1.5+现金（自动）',        max:'', auto:true },
+  { id:'base',        label:'基础分数',  hint:'总收入÷10+现金÷5（自动）',        max:'', auto:true },
   { id:'community',   label:'村庄建设',  hint:'社区中心25w · Joja10w（自动）',   max:'', auto:true },
   { id:'friendship',  label:'好感度奖励', hint:'8心+2w/NPC · 结婚5w（自动）',    max:'', auto:true },
   { id:'skillBonus',  label:'技能奖励',  hint:'5技能全10级·5w/人（自动）',      max:'', auto:true },
@@ -2258,9 +2258,9 @@ function buildTeamDetail(tid) {
     if (cid === 'community') {
       const cc   = meta.cc_complete;
       const joja = meta.joja_complete;
-      const ccTag  = cc   ? '<span style="color:var(--green-lt)">✅ 社区中心献祭 +25万</span>'
+      const ccTag  = cc   ? '<span style="color:var(--green-lt)">✅ 社区中心献祭 +50万</span>'
                            : '<span style="color:var(--ink-faint)">❌ 社区中心（未完成）</span>';
-      const jojaTag= joja ? '<span style="color:var(--yellow)">⚡ Joja路线 +10万</span>'
+      const jojaTag= joja ? '<span style="color:var(--yellow)">⚡ Joja路线 +20万</span>'
                           : '<span style="color:var(--ink-faint)">❌ Joja路线</span>';
       return `<div style="font-size:.74rem;line-height:1.7;margin-top:3px;padding-left:6px;">${ccTag}<br>${jojaTag}</div>`;
     }
@@ -2269,8 +2269,8 @@ function buildTeamDetail(tid) {
       const npcs = (meta.friend_8heart_npcs || []).slice(0,5).join('·');
       const more = (meta.friend_8heart_npcs||[]).length > 5 ? `等${(meta.friend_8heart_npcs||[]).length}人` : '';
       const sp   = meta.spouse;
-      const h8   = cnt ? `<span style="color:var(--green-lt)">❤️ ${cnt}人达8心 × 2万 = ${(cnt*2)}万</span>` : '<span style="color:var(--ink-faint)">❤️ 0人达8心</span>';
-      const spTag= sp  ? `<span style="color:var(--yellow)">💍 结婚：${sp} +5万</span>` : '<span style="color:var(--ink-faint)">💍 未结婚</span>';
+      const h8   = cnt ? `<span style="color:var(--green-lt)">❤️ ${cnt}人达8心 × 4万 = ${(cnt*4)}万</span>` : '<span style="color:var(--ink-faint)">❤️ 0人达8心</span>';
+      const spTag= sp  ? `<span style="color:var(--yellow)">💍 结婚：${sp} +10万</span>` : '<span style="color:var(--ink-faint)">💍 未结婚</span>';
       const npcStr = cnt ? `<div style="font-size:.70rem;color:var(--ink-muted);padding-left:6px;">${npcs}${more}</div>` : '';
       return `<div style="font-size:.74rem;line-height:1.7;margin-top:3px;padding-left:6px;">${h8}<br>${spTag}</div>${npcStr}`;
     }
@@ -2278,9 +2278,9 @@ function buildTeamDetail(tid) {
       const m120 = meta.mine_120_done;
       const s100 = meta.skull_100_done;
       const skull= meta.skull_cavern_level || 0;
-      const mTag = m120 ? '<span style="color:var(--green-lt)">⛏️ 矿洞120层 ✅ +3万</span>'
+      const mTag = m120 ? '<span style="color:var(--green-lt)">⛏️ 矿洞120层 ✅ +6万</span>'
                         : `<span style="color:var(--ink-faint)">⛏️ 矿洞120层 ❌ (当前${meta.deepest_mine||0}层)</span>`;
-      const sTag = s100 ? '<span style="color:var(--green-lt)">💀 骷髅洞100层 ✅ +3万</span>'
+      const sTag = s100 ? '<span style="color:var(--green-lt)">💀 骷髅洞100层 ✅ +12万</span>'
                         : `<span style="color:var(--ink-faint)">💀 骷髅洞100层 ❌ (当前${skull}层)</span>`;
       const autoV = (meta.auto_special_score || 0);
       const diff  = (s.special||0) - autoV;
@@ -2302,7 +2302,7 @@ function buildTeamDetail(tid) {
     if (cid === 'base') {
       const te = meta.total_earned || 0;
       const mn = meta.money || 0;
-      return `<div style="font-size:.73rem;color:var(--ink-faint);margin-top:2px;padding-left:6px;">总收入 ${te.toLocaleString()}÷1.5 + 现金 ${mn.toLocaleString()}</div>`;
+      return `<div style="font-size:.73rem;color:var(--ink-faint);margin-top:2px;padding-left:6px;">总收入 ${te.toLocaleString()}÷10 + 现金 ${mn.toLocaleString()}÷5</div>`;
     }
     return '';
   }
@@ -2377,7 +2377,7 @@ function buildTeamDetail(tid) {
           <span class="td-val ok">${(meta.money||0).toLocaleString()} G</span></div>
         <div class="td-row"><span class="td-lbl">📈 历史总收入</span>
           <span class="td-val">${(meta.total_earned||0).toLocaleString()} G</span></div>
-        <div class="td-row"><span class="td-lbl">🏅 基础分(总收入÷1.5 + 现金)</span>
+        <div class="td-row"><span class="td-lbl">🏅 基础分(总收入÷10 + 现金÷5)</span>
           <span class="td-val" style="color:var(--gold);">${(meta.base_score||0).toLocaleString()}</span></div>
       </div>`;
 
