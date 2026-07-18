@@ -2661,10 +2661,11 @@ function renderArchive() {
 ═══════════════════════════════════════════════ */
 
 function getServerUrl() {
-  // 优先读防作弊页的输入框，其次计分管理输入框，最后 localStorage
+  // 手动填写的地址优先；GitHub Pages 使用启动器注入的公网地址；最后才回退到旧缓存和本机。
   const ac  = document.getElementById('acSrvUrl');
   const sc  = document.getElementById('srvUrl');
   const val = (ac && ac.value.trim()) || (sc && sc.value.trim())
+              || window.SV_BACKEND_URL
               || localStorage.getItem('sv_server') || 'http://localhost:3722';
   return val.trim().replace(/\/+$/, '');
 }
